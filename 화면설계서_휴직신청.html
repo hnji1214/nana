@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>휴직 신청 화면설계서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); }
+  * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; box-sizing: border-box; }
+  body { background: #f8f9fa; margin: 0; }
+
+  /* === TAB NAVIGATION === */
+  .tab-btn { transition: all 0.15s; background: #fff; border: none; cursor: pointer; }
+  .tab-btn:hover { background: #e9ecef; }
+  .tab-btn.active { background: #343a40; color: #fff; }
+
+  /* === SCREEN SECTIONS === */
+  .screen-section { scroll-margin-top: 48px; position: relative; z-index: 1; }
+
+  /* === SIDEBAR === */
+  .sidebar-item { padding: 10px 20px; color: #adb5bd; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 10px; border-radius: 6px; margin: 2px 8px; transition: all 0.15s; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.08); color: #dee2e6; }
+  .sidebar-item.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
+  .sidebar-sub { padding-left: 44px; font-size: 12px; }
+
+  /* === STAT CARDS === */
+  .stat-card { background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #dee2e6; }
+  .stat-value { font-size: 28px; font-weight: 700; color: #212529; }
+  .stat-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+  .stat-change { font-size: 12px; font-weight: 500; }
+  .stat-up { color: #495057; }
+  .stat-up::before { content: "▲ "; font-size: 10px; }
+  .stat-down { color: #6c757d; }
+  .stat-down::before { content: "▼ "; font-size: 10px; }
+
+  /* === BADGES (all grayscale) === */
+  .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  .badge-dark { background: #343a40; color: #fff; }
+  .badge-mid { background: #6c757d; color: #fff; }
+  .badge-light { background: #e9ecef; color: #495057; }
+  .badge-outline { background: #fff; color: #495057; border: 1px solid #ced4da; }
+  .badge-pending { background: #e9ecef; color: #495057; border: 1px solid #ced4da; }
+  .badge-approved { background: #dee2e6; color: #212529; }
+  .badge-rejected { background: #495057; color: #fff; }
+  .badge-active { background: #343a40; color: #fff; }
+
+  /* === TABLES === */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #e9ecef; text-align: left; padding: 10px 12px; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6; font-size: 12px; }
+  td { padding: 10px 12px; border-bottom: 1px solid #e9ecef; color: #343a40; }
+  tr:hover td { background: #f8f9fa; }
+
+  /* === BUTTONS === */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-dark { background: #495057; color: #fff; }
+  .btn-dark:hover { background: #343a40; }
+  .btn-outline { background: #fff; color: #495057; border: 1px solid #ced4da; }
+  .btn-outline:hover { background: #f8f9fa; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* === CARDS === */
+  .card { background: #fff; border-radius: 10px; border: 1px solid #dee2e6; overflow: visible; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid #e9ecef; font-weight: 600; font-size: 15px; color: #212529; }
+  .card-body { padding: 20px; }
+
+  /* === TOGGLE === */
+  .toggle { width: 40px; height: 22px; border-radius: 11px; position: relative; cursor: pointer; transition: all 0.2s; }
+  .toggle.on { background: #495057; }
+  .toggle.off { background: #ced4da; }
+  .toggle::after { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; top: 2px; transition: all 0.2s; }
+  .toggle.on::after { left: 20px; }
+  .toggle.off::after { left: 2px; }
+
+  /* === INPUTS === */
+  .input { padding: 8px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 13px; outline: none; width: 100%; }
+  .input:focus { border-color: #495057; box-shadow: 0 0 0 3px rgba(73,80,87,0.1); }
+  .select { padding: 8px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 13px; background: #fff; outline: none; cursor: pointer; appearance: auto; }
+
+  /* === GAUGE === */
+  .gauge-ring { stroke-linecap: round; transition: stroke-dashoffset 0.5s; }
+
+  /* === META BOX === */
+  .screen-id-badge { display: inline-flex; align-items: center; padding: 3px 12px; background: #e9ecef; border: 1px solid #ced4da; border-radius: 6px; font-size: 12px; font-weight: 600; color: #495057; margin-right: 8px; }
+  .breadcrumb { font-size: 12px; color: #adb5bd; }
+  .breadcrumb a { color: #6c757d; text-decoration: none; }
+  .meta-box { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+  .meta-box .meta-label { font-size: 11px; color: #adb5bd; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .meta-box .meta-value { font-size: 13px; color: #343a40; margin-top: 2px; }
+
+  /* === NUMBERED INDICATORS === */
+  .indicator { position: absolute; z-index: 9999; width: 22px; height: 22px; border-radius: 50%; background: #e67700; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 2px 6px rgba(230,119,0,0.35); }
+  .ind-container { position: relative; overflow: visible !important; }
+
+  /* === DESCRIPTION TABLE === */
+  .desc-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 0; }
+  .desc-table th { background: #343a40; color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; border: 1px solid #343a40; }
+  .desc-table td { padding: 8px 10px; border: 1px solid #dee2e6; color: #343a40; vertical-align: top; line-height: 1.5; }
+  .desc-table tr:nth-child(even) td { background: #f8f9fa; }
+  .desc-table .num { font-weight: 700; text-align: center; width: 1%; white-space: nowrap; color: #e67700; }
+  .desc-table th:last-child, .desc-table td:last-child { width: 240px; min-width: 240px; }
+
+  /* === RIGHT PANEL LAYOUT === */
+  .screen-section:not(#cover-page) { display: grid; grid-template-columns: 1fr 400px; grid-template-rows: auto 1fr; }
+  .screen-section:not(#cover-page) .meta-box { grid-column: 1 / -1; }
+  .screen-section:not(#cover-page) .wireframe-wrap { grid-column: 1; grid-row: 2; }
+  .screen-section:not(#cover-page) .desc-wrap { grid-column: 2; grid-row: 2; position: sticky; top: 52px; max-height: calc(100vh - 60px); overflow-y: auto; margin: 0 !important; padding: 16px; border-left: 2px solid #dee2e6; background: #fff; align-self: start; }
+  .desc-wrap h3 { font-size: 14px !important; margin: 0 0 10px 0 !important; }
+
+  /* === DOWNLOAD BUTTONS === */
+  /* PDF only. Editable PPTX is injected by sb-creator-pptx (separate skill). */
+  .download-btns { position: absolute; top: 60px; right: 32px; display: flex; gap: 8px; z-index: 10; }
+  .download-btns button { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #ced4da; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+  .download-btns button:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.3); }
+
+  /* === PRINT === */
+  @media print {
+    @page { size: landscape; margin: 8mm; }
+    .no-print, .download-btns { display: none !important; }
+    body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .screen-section { page-break-before: always; position: static !important; z-index: auto !important; scroll-margin-top: 0 !important; }
+    .screen-section:not(#cover-page) { display: grid !important; grid-template-columns: 1fr 360px !important; }
+    .desc-wrap { position: static !important; max-height: none !important; overflow: visible !important; }
+    .wireframe-wrap { overflow: hidden !important; }
+    .meta-box { margin: 0 24px !important; }
+  }
+
+  .screen-section:not(#cover-page) { grid-template-columns: 1fr 480px; }
+  .desc-table th:last-child, .desc-table td:last-child { width: auto; min-width: 0; }
+  .desc-table .dtype { font-size: 10.5px; color: #868e96; margin-top: 2px; font-weight: 400; }
+  .mk { position: relative; }
+  .app { border: 1px solid #dee2e6; border-radius: 10px; background: #fff; position: relative; overflow: visible; }
+  .app-top { height: 52px; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; gap: 10px; padding: 0 16px; font-size: 12px; color: #495057; }
+  .logo-mark { width: 26px; height: 26px; border-radius: 6px; background: #343a40; color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+  .mega { padding: 4px 8px; color: #6c757d; } .mega.on { color: #212529; font-weight: 700; border-bottom: 2px solid #343a40; }
+  .ticon { border: 1px solid #dee2e6; border-radius: 6px; padding: 3px 7px; font-size: 11px; color: #6c757d; }
+  .avatar { width: 28px; height: 28px; border-radius: 14px; background: #6c757d; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+  .app-body { display: flex; }
+  .app-side { width: 190px; background: #343a40; color: #adb5bd; padding: 14px 0; font-size: 12px; border-radius: 0 0 0 10px; }
+  .side-h { padding: 6px 16px; color: #dee2e6; font-weight: 600; } .side-i { padding: 8px 16px 8px 24px; margin: 2px 8px; border-radius: 6px; }
+  .side-i.on { background: #495057; color: #fff; font-weight: 600; } .new { font-size: 9px; background: #adb5bd; color: #212529; border-radius: 6px; padding: 1px 5px; margin-left: 4px; }
+  .app-main { flex: 1; background: #f8f9fa; padding: 16px 20px 20px; min-width: 0; border-radius: 0 0 10px 0; }
+  .crumb { font-size: 11px; color: #868e96; } .crumb b { color: #343a40; }
+  .ptitle { font-size: 20px; font-weight: 700; color: #212529; margin-top: 8px; } .psub { font-size: 12px; color: #868e96; margin: 2px 0 14px; }
+  .wf-select, .wf-input { border: 1px solid #ced4da; border-radius: 6px; background: #fff; padding: 7px 10px; font-size: 12px; color: #495057; display: flex; align-items: center; justify-content: space-between; height: 34px; }
+  .caret { color: #868e96; margin-left: 8px; }
+  .flab { font-size: 11px; color: #6c757d; font-weight: 600; margin-bottom: 4px; }
+  .filter-bar { display: flex; gap: 16px; align-items: flex-end; padding: 14px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; }
+  .toolbar { display: flex; gap: 6px; align-items: center; margin: 16px 0 8px; }
+  .wf-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
+  .wf-table th { background: #e9ecef; font-size: 11.5px; } .wf-table td, .wf-table th { padding: 9px 10px; }
+  .wf-table tr.sel td { background: #f1f3f5; }
+  .lnk { color: #212529; text-decoration: underline; cursor: pointer; font-size: 12px; }
+  .note, .help { font-size: 11px; color: #868e96; margin-top: 8px; } .g { color: #868e96; font-size: 11px; }
+  .pager { display: inline-flex; gap: 4px; } .pager span { min-width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 6px; font-size: 12px; color: #495057; }
+  .pager span.on { background: #343a40; color: #fff; }
+  .wf-chk { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #343a40; }
+  .wf-chk .box { width: 16px; height: 16px; border: 1.5px solid #adb5bd; border-radius: 4px; background: #fff; font-size: 11px; line-height: 13px; text-align: center; color: #fff; flex: none; }
+  .wf-chk.circle .box { border-radius: 8px; } .wf-chk.on .box { background: #343a40; border-color: #343a40; } .wf-chk.dis .box { background: #e9ecef; border-color: #dee2e6; }
+  .wf-radio { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #343a40; margin-right: 18px; }
+  .wf-radio .dot { width: 16px; height: 16px; border: 1.5px solid #adb5bd; border-radius: 8px; background: #fff; position: relative; flex: none; }
+  .wf-radio .dot.on { border: 5px solid #343a40; }
+  .rlist { display: flex; flex-direction: column; gap: 8px; }
+  .btn-ghost { background: transparent; color: #495057; } .btn-sec { background: #e9ecef; color: #343a40; }
+  .btn.is-dis { opacity: .4; }
+  .wf-alert { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; font-size: 12px; line-height: 1.55; color: #343a40; background: #f1f3f5; border: 1px solid #dee2e6; }
+  .wf-alert .ai { width: 18px; height: 18px; border-radius: 9px; background: #6c757d; color: #fff; font-size: 11px; font-weight: 700; text-align: center; line-height: 18px; flex: none; }
+  .wf-alert.warn { background: #fff; border: 1px solid #adb5bd; border-left: 4px solid #6c757d; }
+  .wf-alert.err { background: #fff; border: 1px solid #495057; border-left: 4px solid #212529; } .wf-alert.err .ai { background: #212529; }
+  .fstatus { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #6c757d; }
+  .stepper { display: flex; align-items: center; gap: 8px; padding: 12px 14px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; }
+  .stp { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #868e96; } .stp b { display: block; font-size: 12px; } .stp small { font-size: 10.5px; }
+  .stp .n { width: 24px; height: 24px; border-radius: 12px; border: 1.5px solid #ced4da; background: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex: none; }
+  .stp.cur { color: #212529; } .stp.cur .n { background: #343a40; color: #fff; border-color: #343a40; }
+  .stp.done { color: #495057; } .stp.done .n { background: #adb5bd; color: #fff; border-color: #adb5bd; } .stp.lock { opacity: .6; }
+  .stp-line { flex: 1; height: 1px; background: #ced4da; }
+  .stephead { display: flex; gap: 10px; align-items: baseline; padding: 10px 0; border-bottom: 2px solid #343a40; font-size: 14px; color: #212529; }
+  .stephead span { font-size: 12px; color: #868e96; }
+  .fs-row { display: grid; grid-template-columns: 210px 1fr; border-bottom: 1px solid #e9ecef; }
+  .fs-row.cond { background: repeating-linear-gradient(0deg,#fff,#fff); outline: 1px dashed #adb5bd; outline-offset: -1px; }
+  .fs-label { background: #f8f9fa; padding: 12px 14px; font-size: 12.5px; color: #212529; } .fs-label b em, .sublab em { color: #495057; font-style: normal; margin-left: 2px; }
+  .fs-label span { display: block; font-size: 11px; color: #868e96; margin-top: 3px; line-height: 1.45; font-weight: 400; }
+  .fs-field { padding: 12px 14px; font-size: 12.5px; color: #343a40; min-width: 0; }
+  .days { font-size: 12px; font-weight: 600; color: #343a40; }
+  .remain { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px 12px; font-size: 12px; } .hist { font-size: 11px; color: #868e96; margin-top: 4px; }
+  .sublab { font-size: 11.5px; font-weight: 600; color: #495057; margin: 12px 0 6px; }
+  .filebox { border: 1px solid #dee2e6; border-radius: 8px; padding: 10px 12px; background: #fff; }
+  .fhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; } .fsub { font-size: 11px; color: #868e96; margin-top: 2px; }
+  .fitem { display: flex; gap: 8px; align-items: center; font-size: 12px; padding: 8px 0 0; margin-top: 8px; border-top: 1px solid #f1f3f5; }
+  .stepnav { display: flex; gap: 8px; padding: 14px 0 8px; }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; padding: 12px 16px; margin-top: 12px; background: #fff; border: 1px solid #dee2e6; border-radius: 10px; }
+  .anote { font-size: 11.5px; color: #868e96; margin-right: auto; }
+  .pledges { border: 1px solid #e9ecef; border-radius: 8px; background: #fff; }
+  .pitem { padding: 12px 14px; border-bottom: 1px solid #e9ecef; } .pitem:last-child { border-bottom: none; }
+  .pitem p { margin: 0 0 8px; font-size: 12.5px; color: #343a40; line-height: 1.6; }
+  .pmeta { display: flex; gap: 20px; font-size: 12px; color: #6c757d; } .pmeta b { color: #212529; margin-left: 4px; }
+  .agree { font-size: 12px; color: #495057; } .agree em { font-style: normal; font-weight: 700; margin-left: 6px; }
+  .rtitle { font-size: 17px; display: flex; gap: 8px; align-items: center; } .rmeta { font-size: 12px; color: #868e96; margin-top: 4px; }
+  .dim { position: absolute; inset: 0; background: rgba(33,37,41,.45); display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+  .dialog { background: #fff; border-radius: 12px; padding: 18px 20px; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  .dlg-head { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #212529; margin-bottom: 12px; }
+  .dlg-head .x, .x { font-size: 18px; color: #868e96; }
+  .ninfo { width: 22px; height: 22px; border-radius: 11px; background: #343a40; color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+  .notice { border-top: 1px solid #e9ecef; } .nrow { display: grid; grid-template-columns: 100px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f3f5; font-size: 12.5px; line-height: 1.6; color: #343a40; }
+  .nrow ul { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: #495057; } .nl { font-weight: 700; color: #212529; }
+  .ddesc { font-size: 12.5px; color: #495057; line-height: 1.6; margin: 0 0 16px; }
+  .dtag { display: inline-block; font-size: 11px; font-weight: 700; background: #fff; color: #343a40; border-radius: 6px; padding: 2px 8px; margin-bottom: 6px; }
+  .ref-card { background: #fff; border: 1px solid #dee2e6; border-radius: 10px; padding: 16px 18px; margin-top: 20px; }
+  .ref-title { font-size: 14px; font-weight: 700; color: #212529; margin-bottom: 10px; }
+  .ref-table { width: 100%; border-collapse: collapse; font-size: 12px; } .ref-table th { font-size: 11.5px; padding: 8px 10px; border: 1px solid #dee2e6; }
+  .ref-table td { padding: 8px 10px; border: 1px solid #e9ecef; vertical-align: top; line-height: 1.5; } .ref-table.center td:not(:first-child) { text-align: center; }
+  .ref-table.small { font-size: 11.5px; } .ref-table.wf { background: #fff; }
+  .flow { font-size: 12px; } .fl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .fl-box { border: 1.5px solid #495057; border-radius: 8px; padding: 8px 10px; background: #fff; text-align: center; font-weight: 600; color: #212529; line-height: 1.4; }
+  .fl-box.dark { background: #343a40; color: #fff; } .fl-arr { color: #6c757d; font-size: 11px; }
+  .fl-branch { margin-top: 16px; padding: 12px 14px; background: #f8f9fa; border-radius: 8px; } .fl-b { padding: 4px 0; color: #343a40; } .fl-b.sub { padding-left: 22px; color: #6c757d; }
+  /* mobile device frame (PPTX-safe) */
+  .device { width: 360px; height: 660px; background: #F8F9FA; border: 8px solid #212529; border-radius: 28px; position: relative; overflow: hidden; }
+  .hdr { position: absolute; left: 0; top: 0; width: 100%; height: 48px; background: #FFFFFF; border-bottom: 1px solid #DEE2E6; }
+  .hdr-title { position: absolute; left: 44px; top: 14px; font-size: 15px; font-weight: 700; color: #212529; }
+  .hdr-back { position: absolute; left: 12px; top: 12px; width: 24px; height: 24px; border: 1px solid #CED4DA; border-radius: 6px; color: #343A40; font-size: 14px; text-align: center; line-height: 22px; }
+  .hdr-ic { position: absolute; top: 12px; width: 26px; height: 26px; border: 1px solid #DEE2E6; border-radius: 7px; background: #F8F9FA; color: #495057; font-size: 12px; text-align: center; line-height: 25px; }
+  .bbar { position: absolute; left: 0; bottom: 0; width: 100%; background: #FFFFFF; border-top: 1px solid #DEE2E6; }
+  .btn-pri { background: #343A40; color: #FFFFFF; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; }
+  .btn-ghost { border-radius: 8px; text-align: center; }
+  div.btn-ghost { background: #FFFFFF; color: #495057; border: 1px solid #CED4DA; font-size: 13px; font-weight: 600; }
+  .card-box { background: #FFFFFF; border: 1px solid #DEE2E6; border-radius: 10px; }
+  .inp { background: #FFFFFF; border: 1px solid #CED4DA; border-radius: 8px; color: #868E96; font-size: 12px; line-height: 38px; padding-left: 12px; white-space: pre; }
+  .mchk { position: absolute; width: 18px; height: 18px; border: 1.5px solid #ADB5BD; border-radius: 4px; background: #FFFFFF; color: #FFFFFF; font-size: 11px; text-align: center; line-height: 16px; }
+  .mchk.on { background: #343A40; border-color: #343A40; } .mchk.dis { background: #E9ECEF; border-color: #DEE2E6; }
+  @media print { .screen-section:not(#cover-page) { grid-template-columns: 1fr 400px !important; } }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<div id="cover-page" class="screen-section active">
+  <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:#212529; position:relative;">
+    <div class="download-btns no-print">
+      <button id="btn-pdf" onclick="downloadPDF(event)">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+        PDF
+      </button>
+      <!-- Editable PPTX button is injected by sb-creator-pptx after generation. -->
+      <!-- BEGIN sb-creator-pptx button (auto-injected) -->
+<!-- sb-creator-pptx 다운로드 버튼 (커버 영역 내부에 PDF 버튼 옆으로 삽입) -->
+<button id="btn-pptx" onclick="downloadPPTX(event)">
+  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+  PPTX
+</button>
+<span class="progress-text" id="download-progress" style="display:none; font-size:11px; color:#adb5bd; align-self:center; white-space:nowrap;"></span>
+<!-- END sb-creator-pptx button -->
+    </div>
+    <div style="text-align:center; color:#fff; max-width:800px; padding:40px;">
+      <div style="font-size:14px; letter-spacing:4px; color:#adb5bd; margin-bottom:20px; font-weight:600;">SCREEN DESIGN DOCUMENT</div>
+      <h1 style="font-size:42px; font-weight:700; margin:0 0 12px 0; line-height:1.3;">휴직 신청 화면설계서</h1>
+      <div style="width:80px; height:3px; background:#adb5bd; margin:24px auto;"></div>
+      <p style="font-size:15px; color:#adb5bd; line-height:1.8; margin-bottom:40px;">
+        ERP Portal(HRD 포탈) 복무관리 › 휴직/퇴직신청 › 휴직 신청<br>목록 조회 · 3단계 신청서 작성 · 신청서 상세 · 공통 팝업
+      </p>
+      <div style="background:#343a40; border:1px solid #495057; border-radius:12px; padding:30px; text-align:left; margin-bottom:40px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:13px;">
+          <div><span style="color:#6c757d;">Project</span><br><span style="color:#e9ecef; font-weight:600;">HRD 포탈(ERP Portal) UI/UX 리뉴얼</span></div>
+          <div><span style="color:#6c757d;">Document Type</span><br><span style="color:#e9ecef; font-weight:600;">Screen Design (Wireframe)</span></div>
+          <div><span style="color:#6c757d;">Version</span><br><span style="color:#e9ecef; font-weight:600;">v1.0</span></div>
+          <div><span style="color:#6c757d;">Date</span><br><span style="color:#e9ecef; font-weight:600;">2026-11-23</span></div>
+          <div><span style="color:#6c757d;">Total Screens</span><br><span style="color:#e9ecef; font-weight:600;">9</span></div>
+          <div><span style="color:#6c757d;">Status</span><br><span style="color:#e9ecef; font-weight:600;">초안 (프로토타입 기준)</span></div>
+        </div>
+      </div>
+      <h3 style="font-size:16px; font-weight:600; margin-bottom:16px; color:#ced4da;">Screen List</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; text-align:left; font-size:13px;">
+        <div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-001 휴직 신청 목록</div><div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-002 휴직 신청 목록 (모바일)</div><div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-003 신청 전 안내 팝업</div><div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-004 신청서 작성 1단계</div><div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-005 신청서 작성 2단계</div><div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-006 신청서 작성 3단계</div><div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-007 신청서 상세</div><div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-008 확인 다이얼로그</div><div style="padding:8px 14px; background:#343a40; border-radius:6px; color:#dee2e6;">SCR-009 바텀시트</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB NAVIGATION ==================== -->
+<div id="tab-nav" class="no-print" style="position:fixed; top:0; left:0; right:0; z-index:1000; background:#fff; border-bottom:1px solid #dee2e6; padding:8px 16px; overflow-x:auto; white-space:nowrap; display:flex; align-items:center;">
+  <button class="tab-btn active" onclick="showScreen('cover-page',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px; font-weight:500;">Cover</button>
+  <button class="tab-btn" onclick="showScreen('overview',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">개요</button><button class="tab-btn" onclick="showScreen('scr-001',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">001 휴직 신청 목록</button><button class="tab-btn" onclick="showScreen('scr-002',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">002 휴직 신청 목록 (모바일)</button><button class="tab-btn" onclick="showScreen('scr-003',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">003 신청 전 안내 팝업</button><button class="tab-btn" onclick="showScreen('scr-004',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">004 신청서 작성 1단계</button><button class="tab-btn" onclick="showScreen('scr-005',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">005 신청서 작성 2단계</button><button class="tab-btn" onclick="showScreen('scr-006',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">006 신청서 작성 3단계</button><button class="tab-btn" onclick="showScreen('scr-007',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">007 신청서 상세</button><button class="tab-btn" onclick="showScreen('scr-008',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">008 확인 다이얼로그</button><button class="tab-btn" onclick="showScreen('scr-009',this)" style="padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; margin-right:2px;">009 바텀시트</button>
+</div>
+
+
+
+<div id="overview" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px;"><span class="screen-id-badge">OVERVIEW</span>
+    <div><span class="meta-label">구분</span><div class="meta-value" style="font-weight:600; font-size:15px;">화면 목록 · 화면 흐름 · 공통 정책</div></div></div>
+  </div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ref-card"><div class="ref-title">화면 목록</div><table class="ref-table "><thead><tr><th>화면 ID</th><th>화면명</th><th>URL(가칭)</th><th>플랫폼</th><th>우선순위</th></tr></thead><tbody><tr><td>SCR-001</td><td>휴직 신청 목록</td><td>/leave/apply</td><td>PC 사용자</td><td>P0</td></tr><tr><td>SCR-002</td><td>휴직 신청 목록 (모바일)</td><td>/leave/apply</td><td>모바일</td><td>P0</td></tr><tr><td>SCR-003</td><td>신청 전 안내 팝업</td><td>(팝업)</td><td>공통</td><td>P0</td></tr><tr><td>SCR-004</td><td>신청서 작성 1단계 — 휴직 신청 및 제출서류</td><td>/leave/apply/new · /:id/edit</td><td>공통</td><td>P0</td></tr><tr><td>SCR-005</td><td>신청서 작성 2단계 — 휴직 서약</td><td>(단계 전환)</td><td>공통</td><td>P0</td></tr><tr><td>SCR-006</td><td>신청서 작성 3단계 — 결재선</td><td>(단계 전환)</td><td>공통</td><td>P0</td></tr><tr><td>SCR-007</td><td>신청서 상세 (읽기)</td><td>/leave/apply/:id</td><td>공통</td><td>P0</td></tr><tr><td>SCR-008</td><td>확인 다이얼로그</td><td>(팝업)</td><td>공통</td><td>P0</td></tr><tr><td>SCR-009</td><td>바텀시트 (선택·달력)</td><td>(팝업)</td><td>모바일</td><td>P1</td></tr></tbody></table></div>
+    <div class="ref-card"><div class="ref-title">화면 흐름</div>
+<div class="flow">
+  <div class="fl-row">
+    <div class="fl-box dark">SCR-001/002<br>휴직 신청 목록</div><div class="fl-arr">[신청] →</div>
+    <div class="fl-box">SCR-003<br>신청 전 안내 팝업</div><div class="fl-arr">[확인하고 신청하기] →</div>
+    <div class="fl-box">SCR-004<br>1단계 신청·제출서류</div><div class="fl-arr">→</div>
+    <div class="fl-box">SCR-005<br>2단계 휴직 서약</div><div class="fl-arr">→</div>
+    <div class="fl-box">SCR-006<br>3단계 결재선</div><div class="fl-arr">[신청] →</div>
+    <div class="fl-box">SCR-008<br>제출 확인</div><div class="fl-arr">→</div>
+    <div class="fl-box dark">목록 + 접수 배너</div>
+  </div>
+  <div class="fl-branch">
+    <div class="fl-b"><b>유형명 클릭 · 작성중</b> → SCR-004 편집 모드 (임시저장 불러오기)</div>
+    <div class="fl-b"><b>유형명 클릭 · 승인대기/승인/반려</b> → SCR-007 상세</div>
+    <div class="fl-b sub">└ 승인대기: [신청 취소] → SCR-008 → 목록 (작성중으로 복귀)</div>
+    <div class="fl-b sub">└ 반려: [다시 신청하기] → SCR-004 (내용 복사 · 기간·서류·서약 재입력)</div>
+    <div class="fl-b"><b>[삭제]</b> 작성중 선택 시 → SCR-008 삭제 확인</div>
+    <div class="fl-b"><b>[신청 취소]</b> 승인대기 선택 시 → SCR-008 취소 확인</div>
+  </div>
+</div></div>
+    <div class="ref-card"><div class="ref-title">공통 정책 요약</div><table class="ref-table "><thead><tr><th>구분</th><th>정책</th></tr></thead><tbody><tr><td>신청 기한</td><td>휴직 개시 예정일 30일 전까지 (육아휴직 예외 사유 시 7일 전)</td></tr><tr><td>증빙 제출</td><td>신청 시 첨부 또는 개시 예정일 2일 전까지 인사담당자에게 제출. 미제출 시 회사가 개시일 지정 가능</td></tr><tr><td>상태 전이</td><td>작성중 →(신청)→ 승인대기 →(결재)→ 승인/반려 · 승인대기 →(신청 취소)→ 작성중</td></tr><tr><td>행별 가능 액션</td><td>작성중: 편집·삭제 / 승인대기: 상세·신청 취소 / 승인: 상세 / 반려: 상세·다시 신청</td></tr><tr><td>기간 중복</td><td>승인·승인대기 건과 기간 중복 불가</td></tr><tr><td>결재선</td><td>1차 소속 부서장 → 2차 인사담당, 자동 지정·변경 불가</td></tr><tr><td>첨부 파일</td><td>PDF·JPG·PNG, 파일당 10MB 이하</td></tr><tr><td>반응형</td><td>680px 이하: 테이블 → 카드 리스트, 필터 접힘, Select/달력 → 바텀시트, 하단 탭바</td></tr></tbody></table></div>
+  </div>
+  <div class="desc-wrap">
+  <h3 style="font-weight:700; color:#212529;">확인 필요 사항</h3>
+  <table class="desc-table"><thead><tr><th class="num">No.</th><th>항목</th><th>내용</th></tr></thead><tbody>
+  <tr><td class="num">1</td><td><b>잔여기간 한도</b></td><td>육아 365일 + 추가 183일, 가족돌봄 연 90일, 단기 육아휴직 1~2주 — 프로토타입 예시값. 사내 규정 원문 확인 필요</td></tr>
+  <tr><td class="num">2</td><td><b>유형별 제출서류</b></td><td>인사팀 확인 필요</td></tr>
+  <tr><td class="num">3</td><td><b>결재선 후보</b></td><td>1차 소속 부서장 / 2차 인사담당 — 조직 기준 확인 필요</td></tr>
+  <tr><td class="num">4</td><td><b>로딩·조회 실패</b></td><td>프로토타입 미구현. 개발 시 공통 스켈레톤/토스트 적용</td></tr>
+  </tbody></table>
+  <h3 style="margin-top:18px !important;">문서 정보</h3>
+  <table class="desc-table"><tbody>
+  <tr><td><b>원본</b></td><td>hrdportal_261102_휴직신청.html (ERP Portal 프로토타입 v2 · A안 AI 어시스턴트 고정형)</td></tr>
+  <tr><td><b>메뉴 위치</b></td><td>복무관리 › 휴직/퇴직신청 › 휴직 신청</td></tr>
+  <tr><td><b>기준 해상도</b></td><td>PC 1920px / 모바일 375px · 680px 이하 = 모바일 레이아웃</td></tr>
+  </tbody></table>
+</div>
+</div>
+
+<div id="scr-001" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-001</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">휴직 신청 목록</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">URL</span><div class="meta-value">/leave/apply</div></div><div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">PC 사용자</div></div><div style="margin-left:20px;"><span class="meta-label">접근 권한</span><div class="meta-value">로그인 사용자(본인 신청 건만)</div></div><div style="margin-left:20px;"><span class="meta-label">화면 패턴</span><div class="meta-value">Pattern A (표준 데이터 리스트)</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container">
+<div class="app">
+  <div class="app-top">
+    <span class="logo-mark">E</span><b style="font-size:14px;">ERP Portal</b>
+    <span class="mega">인사관리</span><span class="mega">근태관리</span><span class="mega on">복무관리</span><span class="mega">교육·HRD</span><span class="mega">전자결재</span>
+    <div class="wf-input" style="width:260px; margin-left:16px; color:#adb5bd;">🔍 메뉴 검색 (예: 초과근무, 결재대기...)</div>
+    <span style="flex:1"></span>
+    <span class="ticon">조직도</span><span class="ticon">알림</span><span class="ticon">공지</span>
+    <span class="avatar">이</span><span style="font-size:12px;"><b>이인사</b><br><span style="color:#868e96;">HRD기획팀 · 대리</span></span>
+  </div>
+  <div class="app-body">
+    <div class="app-side">
+      <div class="side-h">⭐ 자주 쓰는 업무</div>
+      <div class="side-i">복무 신청/현황</div>
+      <div class="side-h" style="margin-top:14px;">‹ 휴직/퇴직신청</div>
+      <div class="side-i on">휴직 신청 <span class="new">NEW</span></div>
+    </div>
+    <div class="app-main">
+      <div class="crumb">ERP Portal › 복무관리 › 휴직/퇴직신청 › <b>휴직 신청</b></div>
+      <div class="ptitle">휴직 신청</div>
+      <div class="psub">이 화면 전용 메뉴는 좌측 사이드바에서 확인하세요</div>
+      
+<div class="card" style="padding:16px 18px;">
+  <div class="mk" style="margin-bottom:14px;"><div class="wf-alert info"><span class="ai">i</span><span>육아휴직 신청이 접수됐어요. 결재가 끝나면 신청상태가 바뀝니다. <a class="lnk" style="margin-left:auto;">알림 닫기</a></span></div><div class="indicator" style="top:-10px; left:-24px;">1</div></div>
+  <div class="filter-bar">
+    <div class="mk" style=""><div class="flab">휴직 유형</div><div class="wf-select" style="width:170px;">전체<span class="caret">▾</span></div><div class="indicator" style="top:-10px; left:-24px;">2</div></div>
+    <div class="mk" style=""><div class="flab">신청상태</div><div class="wf-select" style="width:170px;">전체<span class="caret">▾</span></div><div class="indicator" style="top:-10px; left:-24px;">3</div></div>
+    <div class="mk" style=""><div class="flab">신청일</div><div style="display:flex; gap:6px; align-items:center;"><div class="wf-input" style="width:130px;">시작일<span class="caret">📅</span></div>~<div class="wf-input" style="width:130px;">종료일<span class="caret">📅</span></div></div><div class="indicator" style="top:-10px; left:-24px;">4</div></div>
+    <span style="flex:1"></span>
+    <div class="mk" style="align-self:flex-end;"><button class="btn btn-dark  " style="">조회</button><div class="indicator" style="top:-10px; left:-24px;">5</div></div>
+  </div>
+  <div class="toolbar">
+    <div class="mk" style=""><span style="font-size:13px;">전체 12건 · <b>2건 선택</b></span><div class="indicator" style="top:-12px; left:-14px;">6</div></div>
+    <span style="flex:1"></span>
+    <div class="mk" style=""><button class="btn btn-sec btn-sm " style="">삭제</button><div class="indicator" style="top:-12px; left:-10px;">7</div></div>
+    <div class="mk" style=""><button class="btn btn-sec btn-sm " style="">신청 취소</button><div class="indicator" style="top:-12px; left:-10px;">8</div></div>
+    <div class="mk" style=""><button class="btn btn-dark btn-sm " style="">신청</button><div class="indicator" style="top:-12px; left:-10px;">9</div></div>
+  </div>
+  <table class="wf-table">
+    <thead><tr><th><div class="mk" style="display:inline-block;"><span class="wf-chk circle"><span class="box"></span></span><div class="indicator" style="top:-8px; left:-18px;">10</div></div></th><th>휴직 유형</th><th>휴직 시작일</th><th>휴직 종료일</th><th>신청일</th><th>신청상태</th><th>확인일</th><th>확인자</th></tr></thead>
+    <tbody><tr class="sel"><td style="width:40px;"><div class="mk" style="display:inline-block;"><span class="wf-chk on"><span class="box">✓</span></span><div class="indicator" style="top:-8px; left:-18px;">11</div></div></td><td><div class="mk" style="display:inline-block;"><a class="lnk">초등자녀 돌봄휴직</a><div class="indicator" style="top:-10px; left:-22px;">12</div></div></td><td>2027.03.02</td><td>2027.05.31</td><td><div class="mk" style="display:inline-block;"><span style="color:#adb5bd;">-</span><div class="indicator" style="top:-12px; left:-20px;">14</div></div></td><td><div class="mk" style="display:inline-block;"><span class="badge badge-outline">작성중</span><div class="indicator" style="top:-12px; left:-18px;">13</div></div></td><td><span style="color:#adb5bd;">-</span></td><td><span style="color:#adb5bd;">-</span></td></tr><tr class=""><td style="width:40px;"><span class="wf-chk"><span class="box"></span></span></td><td><a class="lnk">가족돌봄휴직</a></td><td>2026.12.14</td><td>2026.12.24</td><td><span style="color:#adb5bd;">-</span></td><td><span class="badge badge-outline">작성중</span></td><td><span style="color:#adb5bd;">-</span></td><td><span style="color:#adb5bd;">-</span></td></tr><tr class="sel"><td style="width:40px;"><span class="wf-chk on"><span class="box">✓</span></span></td><td><a class="lnk">가족돌봄휴직</a></td><td>2026.10.26</td><td>2026.11.06</td><td>2026.09.25</td><td><span class="badge badge-pending">승인대기</span></td><td><span style="color:#adb5bd;">-</span></td><td><span style="color:#adb5bd;">-</span></td></tr><tr class=""><td style="width:40px;"><span class="wf-chk"><span class="box"></span></span></td><td><a class="lnk">육아휴직</a></td><td>2026.11.02</td><td>2027.10.29</td><td>2026.09.24</td><td><span class="badge badge-pending">승인대기</span></td><td><span style="color:#adb5bd;">-</span></td><td><span style="color:#adb5bd;">-</span></td></tr><tr class=""><td style="width:40px;"><span class="wf-chk dis"><span class="box"></span></span></td><td><a class="lnk">단기 육아휴직</a></td><td>2026.08.17</td><td>2026.08.30</td><td>2026.07.13</td><td><span class="badge badge-approved">승인</span></td><td>2026.07.15</td><td>최은영</td></tr><tr class=""><td style="width:40px;"><span class="wf-chk dis"><span class="box"></span></span></td><td><a class="lnk">난임휴직</a></td><td>2026.06.01</td><td>2026.08.31</td><td>2026.04.20</td><td><span class="badge badge-rejected">반려</span></td><td>2026.04.24</td><td>박정호</td></tr><tr class=""><td style="width:40px;"><span class="wf-chk dis"><span class="box"></span></span></td><td><a class="lnk">난임휴직</a></td><td>2026.04.01</td><td>2026.05.29</td><td>2026.02.23</td><td><span class="badge badge-approved">승인</span></td><td>2026.02.26</td><td>최은영</td></tr><tr class=""><td style="width:40px;"><span class="wf-chk dis"><span class="box"></span></span></td><td><a class="lnk">가족돌봄휴직</a></td><td>2026.01.05</td><td>2026.01.16</td><td>2025.11.24</td><td><span class="badge badge-approved">승인</span></td><td>2025.11.27</td><td>최은영</td></tr></tbody>
+  </table>
+  <div class="note">작성중(임시저장)인 신청은 삭제, 승인대기인 신청은 신청 취소할 수 있습니다.</div>
+  <div style="text-align:center; margin-top:10px;"><div class="mk" style="display:inline-block;"><div class="pager"><span>«</span><span>‹</span><span class="on">1</span><span>2</span><span>›</span><span>»</span></div><div class="indicator" style="top:-10px; left:-24px;">15</div></div></div>
+</div>
+    </div>
+  </div>
+  
+</div></div>
+    
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>처리 결과 배너</b><div class="dtype">Alert (info)</div></td><td>제출·취소 후 결과 안내</td><td>[알림 닫기] 클릭 시 사라짐. 미첨부 서류가 있으면 "증빙서류는 개시일 2일 전 날짜까지 제출" 문구 포함</td></tr><tr><td class="num">2</td><td><b>휴직 유형 필터</b><div class="dtype">Select</div></td><td>전체 / 육아휴직 / 난임휴직 / 단기 육아휴직 / 가족돌봄휴직 / 초등자녀 돌봄휴직</td><td>클릭 시 드롭다운. 값 선택만으로는 조회되지 않음</td></tr><tr><td class="num">3</td><td><b>신청상태 필터</b><div class="dtype">Select</div></td><td>전체 / 작성중(임시저장) / 승인대기 / 승인 / 반려</td><td>위와 같음</td></tr><tr><td class="num">4</td><td><b>신청일 기간</b><div class="dtype">DatePicker ×2</div></td><td>시작일 ~ 종료일 (YYYY.MM.DD)</td><td>달력 팝오버, [날짜 지우기] 제공. 시작일 > 종료일이면 조회 시 자동 맞바꿈</td></tr><tr><td class="num">5</td><td><b>조회 버튼</b><div class="dtype">Button (primary)</div></td><td>입력 조건 확정</td><td>클릭 시 1페이지로 이동, 선택 해제</td></tr><tr><td class="num">6</td><td><b>건수/선택 정보</b><div class="dtype">Text</div></td><td>"전체 N건 · M건 선택"</td><td>선택 시 실시간 갱신</td></tr><tr><td class="num">7</td><td><b>삭제</b><div class="dtype">Button (secondary, sm)</div></td><td>선택한 작성중 건 삭제</td><td>작성중 1건 이상 선택 시 활성 → SCR-008(삭제 확인)</td></tr><tr><td class="num">8</td><td><b>신청 취소</b><div class="dtype">Button (secondary, sm)</div></td><td>선택한 승인대기 건 취소</td><td>승인대기 1건 이상 선택 시 활성 → SCR-008(취소 확인)</td></tr><tr><td class="num">9</td><td><b>신청</b><div class="dtype">Button (primary, sm)</div></td><td>신규 신청</td><td>클릭 시 SCR-003 안내 팝업</td></tr><tr><td class="num">10</td><td><b>전체 선택</b><div class="dtype">Checkbox (circle)</div></td><td>헤더. 현재 페이지의 선택 가능 행만 대상</td><td>선택 가능 행이 없으면 비활성</td></tr><tr><td class="num">11</td><td><b>행 선택</b><div class="dtype">Checkbox (icon)</div></td><td>작성중·승인대기만 선택 가능</td><td>승인·반려 행은 비활성. 선택 행 하이라이트</td></tr><tr><td class="num">12</td><td><b>휴직 유형 링크</b><div class="dtype">TextButton</div></td><td>신청서 열기</td><td>작성중 → SCR-004(편집), 그 외 → SCR-007(상세)</td></tr><tr><td class="num">13</td><td><b>신청상태 뱃지</b><div class="dtype">Badge</div></td><td>작성중 / 승인대기 / 승인 / 반려</td><td>상태별 컬러 코딩</td></tr><tr><td class="num">14</td><td><b>빈 값</b><div class="dtype">Text</div></td><td>값이 없으면 "-"</td><td>—</td></tr><tr><td class="num">15</td><td><b>페이지네이션</b><div class="dtype">Pagination</div></td><td>10건/페이지, « ‹ 번호 › »</td><td>첫/끝 페이지에서 해당 버튼 비활성</td></tr></tbody></table>
+    <h3 style="margin-top:18px !important;">상태별 화면</h3><table class="ref-table small"><thead><tr><th>상태</th><th>조건</th><th>표시 내용</th></tr></thead><tbody><tr><td>기본</td><td>신청 내역 존재</td><td>신청일 최신순 테이블</td></tr><tr><td>로딩</td><td>조회 요청 중</td><td>테이블 행 스켈레톤 (프로토타입 미구현)</td></tr><tr><td>빈 상태</td><td>조회 결과 0건</td><td>"조회된 휴직 신청 내역이 없습니다." / "조회 조건을 바꿔서 다시 조회해 주세요."</td></tr><tr><td>에러</td><td>조회 실패</td><td>토스트 + 재시도 (프로토타입 미구현)</td></tr><tr><td>처리 직후</td><td>제출/취소 완료</td><td>상단 info 배너, 필터 초기화, 목록 맨 위로 스크롤</td></tr></tbody></table>
+  </div>
+</div>
+
+<div id="scr-002" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-002</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">휴직 신청 목록 (모바일)</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">URL</span><div class="meta-value">/leave/apply</div></div><div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">모바일 (뷰포트 ≤ 680px)</div></div><div style="margin-left:20px;"><span class="meta-label">접근 권한</span><div class="meta-value">로그인 사용자</div></div><div style="margin-left:20px;"><span class="meta-label">비고</span><div class="meta-value">SCR-001과 다른 점만 기술</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container">
+<div style="position:relative; width:760px; height:680px; margin:0 auto;">
+ <div class="device" style="position:absolute; left:0; top:0;">
+  <div class="hdr"></div>
+  <div class="hdr-back">≡</div>
+  <div class="hdr-title">ERP Portal</div>
+  <div class="hdr-ic" style="right:12px;">🔔</div>
+  <div style="position:absolute; left:14px; top:60px; font-size:17px; font-weight:700; color:#212529;">휴직 신청</div>
+  <div class="card-box" style="position:absolute; left:12px; top:92px; width:320px; height:40px;"></div>
+  <div style="position:absolute; left:24px; top:104px; font-size:12px; font-weight:600; color:#343a40;">조회 조건</div>
+  <div style="position:absolute; left:92px; top:104px; font-size:12px; color:#6c757d;">육아휴직 · 승인대기</div>
+  <div style="position:absolute; right:26px; top:102px; font-size:12px; color:#6c757d;">▾</div>
+  <div style="position:absolute; left:14px; top:146px; font-size:12px; color:#343a40;">전체 12건</div>
+  <div class="btn-ghost" style="position:absolute; left:148px; top:140px; width:50px; height:28px; line-height:28px; font-size:11px;">삭제</div>
+  <div class="btn-ghost" style="position:absolute; left:204px; top:140px; width:68px; height:28px; line-height:28px; font-size:11px;">신청 취소</div>
+  <div class="btn-pri" style="position:absolute; left:278px; top:140px; width:54px; height:28px; line-height:28px; font-size:11px;">신청</div>
+  
+    <div class="card-box" style="position:absolute; left:12px; top:180px; width:320px; height:58px; background:#f1f3f5;"></div>
+    <div class="mchk on " style="left:24px; top:199px;">✓</div>
+    <div style="position:absolute; left:52px; top:190px; font-size:13px; font-weight:600; color:#212529; text-decoration:underline;">초등자녀 돌봄휴직</div>
+    <div style="position:absolute; left:52px; top:212px; font-size:11px; color:#6c757d;">2027.03.02 ~ 2027.05.31</div>
+    <div style="position:absolute; right:24px; top:198px;"><span class="badge badge-outline">작성중</span></div>
+  
+    <div class="card-box" style="position:absolute; left:12px; top:246px; width:320px; height:58px; "></div>
+    <div class="mchk  " style="left:24px; top:265px;"></div>
+    <div style="position:absolute; left:52px; top:256px; font-size:13px; font-weight:600; color:#212529; text-decoration:underline;">가족돌봄휴직</div>
+    <div style="position:absolute; left:52px; top:278px; font-size:11px; color:#6c757d;">2026.10.26 ~ 2026.11.06</div>
+    <div style="position:absolute; right:24px; top:264px;"><span class="badge badge-pending">승인대기</span></div>
+  
+    <div class="card-box" style="position:absolute; left:12px; top:312px; width:320px; height:58px; "></div>
+    <div class="mchk  " style="left:24px; top:331px;"></div>
+    <div style="position:absolute; left:52px; top:322px; font-size:13px; font-weight:600; color:#212529; text-decoration:underline;">육아휴직</div>
+    <div style="position:absolute; left:52px; top:344px; font-size:11px; color:#6c757d;">2026.11.02 ~ 2027.10.29</div>
+    <div style="position:absolute; right:24px; top:330px;"><span class="badge badge-pending">승인대기</span></div>
+  
+    <div class="card-box" style="position:absolute; left:12px; top:378px; width:320px; height:58px; "></div>
+    <div class="mchk  dis" style="left:24px; top:397px;"></div>
+    <div style="position:absolute; left:52px; top:388px; font-size:13px; font-weight:600; color:#212529; text-decoration:underline;">단기 육아휴직</div>
+    <div style="position:absolute; left:52px; top:410px; font-size:11px; color:#6c757d;">2026.08.17 ~ 2026.08.30</div>
+    <div style="position:absolute; right:24px; top:396px;"><span class="badge badge-approved">승인</span></div>
+  
+    <div class="card-box" style="position:absolute; left:12px; top:444px; width:320px; height:58px; "></div>
+    <div class="mchk  dis" style="left:24px; top:463px;"></div>
+    <div style="position:absolute; left:52px; top:454px; font-size:13px; font-weight:600; color:#212529; text-decoration:underline;">난임휴직</div>
+    <div style="position:absolute; left:52px; top:476px; font-size:11px; color:#6c757d;">2026.06.01 ~ 2026.08.31</div>
+    <div style="position:absolute; right:24px; top:462px;"><span class="badge badge-rejected">반려</span></div>
+  <div style="position:absolute; left:14px; top:512px; width:316px; font-size:10px; color:#868e96; line-height:1.5;">작성중(임시저장)인 신청은 삭제, 승인대기인 신청은 신청 취소할 수 있습니다.</div>
+  <div style="position:absolute; left:110px; top:546px; width:124px; text-align:center; font-size:12px; color:#495057;">«  ‹  [1]  2  ›  »</div>
+  <div class="bbar" style="height:56px;"></div>
+  <div style="position:absolute; left:0; bottom:20px; width:86px; text-align:center; font-size:11px; font-weight:700; color:#212529;">홈</div>
+  <div style="position:absolute; left:86px; bottom:20px; width:86px; text-align:center; font-size:11px; color:#868e96;">결재함</div>
+  <div style="position:absolute; left:172px; bottom:20px; width:86px; text-align:center; font-size:11px; color:#868e96;">통합검색</div>
+  <div style="position:absolute; left:258px; bottom:20px; width:86px; text-align:center; font-size:11px; color:#868e96;">내 정보</div>
+ </div>
+ <div class="device" style="position:absolute; left:400px; top:0;">
+  <div class="hdr"></div>
+  <div class="hdr-back">≡</div>
+  <div class="hdr-title">ERP Portal</div>
+  <div style="position:absolute; left:14px; top:60px; font-size:17px; font-weight:700; color:#212529;">휴직 신청 · 조회 조건 펼침</div>
+  <div class="card-box" style="position:absolute; left:12px; top:92px; width:320px; height:40px; background:#e9ecef;"></div>
+  <div style="position:absolute; left:24px; top:104px; font-size:12px; font-weight:600; color:#343a40;">조회 조건</div>
+  <div style="position:absolute; left:92px; top:104px; font-size:12px; color:#6c757d;">전체</div>
+  <div style="position:absolute; right:26px; top:102px; font-size:12px; color:#6c757d;">▴</div>
+  <div style="position:absolute; left:14px; top:146px; font-size:11px; color:#6c757d;">휴직 유형</div>
+  <div class="inp" style="position:absolute; left:12px; top:164px; width:320px; height:40px;">전체                                              ▾</div>
+  <div style="position:absolute; left:14px; top:214px; font-size:11px; color:#6c757d;">신청상태</div>
+  <div class="inp" style="position:absolute; left:12px; top:232px; width:320px; height:40px;">전체                                              ▾</div>
+  <div style="position:absolute; left:14px; top:282px; font-size:11px; color:#6c757d;">신청일</div>
+  <div class="inp" style="position:absolute; left:12px; top:300px; width:150px; height:40px;">시작일 📅</div>
+  <div style="position:absolute; left:166px; top:312px; font-size:12px;">~</div>
+  <div class="inp" style="position:absolute; left:182px; top:300px; width:150px; height:40px;">종료일 📅</div>
+  <div class="btn-pri" style="position:absolute; left:12px; top:356px; width:320px; height:42px; line-height:42px;">조회</div>
+  <div style="position:absolute; left:14px; top:414px; width:316px; font-size:11px; color:#868e96; line-height:1.5;">Select·날짜 입력을 탭하면 SCR-009 바텀시트가 열립니다. [조회] 후 필터는 자동으로 접힙니다.</div>
+  <div class="bbar" style="height:56px;"></div>
+ </div>
+ <div class="indicator" style="top:98px; left:-4px;">1</div><div class="indicator" style="top:168px; left:404px;">2</div><div class="indicator" style="top:182px; left:336px;">3</div><div class="indicator" style="top:618px; left:336px;">4</div>
+</div></div>
+    
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>조회 조건 토글</b><div class="dtype">Accordion button</div></td><td>현재 적용 조건 요약 표시(없으면 "전체")</td><td>탭 시 필터 펼침/접힘. [조회] 후 자동 접힘</td></tr><tr><td class="num">2</td><td><b>필터 Select / 날짜</b><div class="dtype">Select → BottomSheet</div></td><td>드롭다운 대신 바텀시트</td><td>SCR-009 참고</td></tr><tr><td class="num">3</td><td><b>신청 카드</b><div class="dtype">ListRow</div></td><td>체크박스 + 유형(링크) + 기간 + 상태 뱃지</td><td>기간 없으면 "기간 미입력". 전체선택 체크박스 없음</td></tr><tr><td class="num">4</td><td><b>하단 탭바</b><div class="dtype">BottomNav</div></td><td>홈 / 결재함 / 통합검색 / 내 정보</td><td>활성 탭 하이라이트</td></tr></tbody></table>
+    
+  </div>
+</div>
+
+<div id="scr-003" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-003</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">신청 전 안내 팝업</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">진입</span><div class="meta-value">SCR-001/002 [신청] 버튼</div></div><div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">공통 (Dialog · notice 타입)</div></div><div style="margin-left:20px;"><span class="meta-label">접근 권한</span><div class="meta-value">로그인 사용자</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container">
+<div class="app">
+  <div class="app-top">
+    <span class="logo-mark">E</span><b style="font-size:14px;">ERP Portal</b>
+    <span class="mega">인사관리</span><span class="mega">근태관리</span><span class="mega on">복무관리</span><span class="mega">교육·HRD</span><span class="mega">전자결재</span>
+    <div class="wf-input" style="width:260px; margin-left:16px; color:#adb5bd;">🔍 메뉴 검색 (예: 초과근무, 결재대기...)</div>
+    <span style="flex:1"></span>
+    <span class="ticon">조직도</span><span class="ticon">알림</span><span class="ticon">공지</span>
+    <span class="avatar">이</span><span style="font-size:12px;"><b>이인사</b><br><span style="color:#868e96;">HRD기획팀 · 대리</span></span>
+  </div>
+  <div class="app-body">
+    <div class="app-side">
+      <div class="side-h">⭐ 자주 쓰는 업무</div>
+      <div class="side-i">복무 신청/현황</div>
+      <div class="side-h" style="margin-top:14px;">‹ 휴직/퇴직신청</div>
+      <div class="side-i on">휴직 신청 <span class="new">NEW</span></div>
+    </div>
+    <div class="app-main">
+      <div class="crumb">ERP Portal › 복무관리 › 휴직/퇴직신청 › <b>휴직 신청</b></div>
+      <div class="ptitle">휴직 신청</div>
+      <div class="psub">이 화면 전용 메뉴는 좌측 사이드바에서 확인하세요</div>
+      <div class="card" style="height:520px; background:#fff;"></div>
+    </div>
+  </div>
+  
+<div class="dim">
+ <div class="dialog" style="width:560px;">
+  <div class="dlg-head"><span class="ninfo">i</span><b>휴직 신청 전 꼭 확인해 주세요</b><span style="flex:1"></span><div class="mk" style="display:inline-block;"><span class="x">×</span><div class="indicator" style="top:-12px; left:14px;">5</div></div></div>
+  <div class="mk" style=""><div class="notice">
+    <div class="nrow"><div class="nl">신청 기한</div><div>휴직 개시 예정일 <b>30일 전</b>까지 반드시 신청해야 합니다.</div></div>
+    <div class="nrow"><div class="nl">육아휴직 예외</div><div>아래 사유에 해당하면 휴직 개시 예정일 <b>7일 전</b>까지 신청할 수 있습니다.
+      <ul><li>임신 중인 여성 근로자에게 유산 또는 사산의 위험이 있는 경우</li><li>출산 예정일 이전에 자녀가 출생한 경우</li>
+      <li>배우자의 사망·부상·질병·신체적/정신적 장애 또는 배우자와의 이혼 등으로 해당 영유아를 양육하기 곤란한 경우</li></ul></div></div>
+    <div class="nrow"><div class="nl">증빙서류 제출</div><div>신청 시 첨부하거나, 휴직 개시 예정일 <b>2일 전</b>까지 소속 인사담당자에게 제출해 주세요.</div></div>
+  </div><div class="indicator" style="top:-10px; left:-24px;">1</div></div>
+  <div class="mk" style="margin-top:12px;"><div class="wf-alert warn"><span class="ai">⚠</span><span>휴직 개시 예정일 2일 전까지 증빙서류를 제출하지 않으면, 신청한 개시 예정일과 별도로 <b>회사가 휴직 개시일을 지정해 통보</b>할 수 있습니다.</span></div><div class="indicator" style="top:-10px; left:-24px;">2</div></div>
+  <div style="display:flex; gap:8px; margin-top:16px;">
+    <div class="mk" style="flex:1;"><button class="btn btn-sec  " style="width:100%; justify-content:center;">나중에 신청하기</button><div class="indicator" style="top:-10px; left:-24px;">3</div></div>
+    <div class="mk" style="flex:1;"><button class="btn btn-dark  " style="width:100%; justify-content:center;">확인하고 신청하기</button><div class="indicator" style="top:-10px; left:-24px;">4</div></div>
+  </div>
+ </div>
+</div>
+</div></div>
+    
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>안내 목록</b><div class="dtype">NoticeList</div></td><td>신청 기한 / 육아휴직 예외 / 증빙서류 제출</td><td>읽기 전용</td></tr><tr><td class="num">2</td><td><b>경고 박스</b><div class="dtype">Alert (warning)</div></td><td>미제출 시 불이익 안내</td><td>읽기 전용</td></tr><tr><td class="num">3</td><td><b>나중에 신청하기</b><div class="dtype">Button (secondary)</div></td><td>팝업 닫기</td><td>목록 유지</td></tr><tr><td class="num">4</td><td><b>확인하고 신청하기</b><div class="dtype">Button (primary)</div></td><td>작성 화면 이동</td><td>SCR-004(새 신청서)</td></tr><tr><td class="num">5</td><td><b>닫기</b><div class="dtype">IconButton (×)</div></td><td>× / 배경 클릭 / ESC</td><td>팝업 닫기</td></tr></tbody></table>
+    
+  </div>
+</div>
+
+<div id="scr-004" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-004</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">신청서 작성 — 1단계 휴직 신청 및 제출서류</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">URL</span><div class="meta-value">/leave/apply/new · /leave/apply/:id/edit</div></div><div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">공통</div></div><div style="margin-left:20px;"><span class="meta-label">접근 권한</span><div class="meta-value">로그인 사용자(본인)</div></div><div style="margin-left:20px;"><span class="meta-label">화면 패턴</span><div class="meta-value">Pattern E 분할 폼 + 3단계 Stepper</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container">
+<div class="app">
+  <div class="app-top">
+    <span class="logo-mark">E</span><b style="font-size:14px;">ERP Portal</b>
+    <span class="mega">인사관리</span><span class="mega">근태관리</span><span class="mega on">복무관리</span><span class="mega">교육·HRD</span><span class="mega">전자결재</span>
+    <div class="wf-input" style="width:260px; margin-left:16px; color:#adb5bd;">🔍 메뉴 검색 (예: 초과근무, 결재대기...)</div>
+    <span style="flex:1"></span>
+    <span class="ticon">조직도</span><span class="ticon">알림</span><span class="ticon">공지</span>
+    <span class="avatar">이</span><span style="font-size:12px;"><b>이인사</b><br><span style="color:#868e96;">HRD기획팀 · 대리</span></span>
+  </div>
+  <div class="app-body">
+    <div class="app-side">
+      <div class="side-h">⭐ 자주 쓰는 업무</div>
+      <div class="side-i">복무 신청/현황</div>
+      <div class="side-h" style="margin-top:14px;">‹ 휴직/퇴직신청</div>
+      <div class="side-i on">휴직 신청 <span class="new">NEW</span></div>
+    </div>
+    <div class="app-main">
+      <div class="crumb">ERP Portal › 복무관리 › 휴직/퇴직신청 › 휴직 신청 › <b>신청서 작성</b></div>
+      <div class="ptitle">휴직 신청서 작성</div>
+      <div class="psub">예시: 육아휴직 · 신청기간 1년 초과(추가 6개월 증빙 노출)</div>
+      
+<div class="card" style="padding:18px 18px 8px;">
+  <div class="mk" style="display:inline-block;"><div class="fstatus"><span class="badge badge-outline">새 신청서</span><span>아직 저장하지 않았어요</span></div><div class="indicator" style="top:-10px; left:-24px;">1</div></div>
+  <div class="mk" style="margin:12px 0;"><div class="stepper"><div class="stp cur"><span class="n">1</span><span><b>1단계. 휴직 신청·제출서류</b><small>작성 중</small></span></div><div class="stp-line"></div><div class="stp "><span class="n">2</span><span><b>2단계. 휴직 서약</b><small>작성 전</small></span></div><div class="stp-line"></div><div class="stp lock"><span class="n">🔒</span><span><b>3단계. 결재선</b><small>이전 단계 완료 후 진행</small></span></div></div><div class="indicator" style="top:-10px; left:-24px;">2</div></div>
+  <div class="stephead"><b>1단계. 휴직 신청 및 제출서류</b><span>휴직 유형을 고르면 그 유형에 필요한 항목이 표시됩니다.</span></div>
+  <div class="fs-row mk "><div class="fs-label"><b>휴직 유형<em>*</em></b><span>신청할 휴직 종류를 선택하세요</span></div><div class="fs-field"><div class="wf-select" style="width:260px;">육아휴직<span class="caret">▾</span></div></div><div class="indicator" style="top:6px; left:-11px;">3</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>신청기간<em>*</em></b><span>휴직 개시 예정일 30일 전(예외 사유 시 7일 전)까지 신청</span></div><div class="fs-field"><div style="display:flex; gap:8px; align-items:center;"><div class="wf-input" style="width:140px;">2026.10.20<span class="caret">📅</span></div>~<div class="wf-input" style="width:140px;">2027.10.29<span class="caret">📅</span></div><span class="days">총 375일</span></div><div class="mk" style="margin-top:8px;"><div class="wf-alert warn"><span class="ai">⚠</span><span>개시 예정일까지 30일이 남지 않았어요. 유산·사산 위험, 출산 예정일 이전 출생, 배우자 사유로 양육이 곤란한 경우에만 7일 전까지 신청할 수 있으니, 해당 사유 증빙서류를 함께 첨부해 주세요.</span></div><div class="indicator" style="top:-10px; left:-12px;">6</div></div><div class="help">가장 빠른 개시 예정일은 <b>2026.10.05</b>입니다.</div></div><div class="indicator" style="top:6px; left:-11px;">4</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>해당 자녀<em>*</em></b><span>출산 전이면 임신 중 육아휴직을 체크하세요</span></div><div class="fs-field"><div class="mk" style="display:inline-block; margin-bottom:8px;"><span class="wf-chk"><span class="box"></span>임신 중 육아휴직 (출산 전 신청)</span><div class="indicator" style="top:-10px; left:-14px;">8</div></div><div class="rlist"><span class="wf-radio"><span class="dot on"></span>자녀 이서아 <span class="g">(2026.08.30생)</span></span><span class="wf-radio"><span class="dot "></span>자녀 이서윤 <span class="g">(2021.03.02생)</span></span><span class="wf-radio"><span class="dot "></span>자녀 이하준 <span class="g">(2018.05.14생)</span></span></div></div><div class="indicator" style="top:6px; left:-11px;">7</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>잔여기간</b><span>자녀 1명당 1년 기준</span></div><div class="fs-field"><div class="remain"><div>신청 가능 <b>548일</b> <span class="badge badge-light">추가 6개월 포함</span></div><div class="hist">사용 내역 없음</div></div></div><div class="indicator" style="top:6px; left:-11px;">10</div></div>
+  <div class="fs-row mk cond"><div class="fs-label"><b>추가 6개월 증빙<em>*</em></b><span>법정 육아휴직 추가 6개월 대상자</span></div><div class="fs-field"><div class="wf-alert info"><span class="ai">i</span><span><b>1년 이상 육아휴직을 신청했거나 이미 사용 중인 직원</b>은 &#39;법정 육아휴직 추가 6개월 대상자&#39;임을 증빙해야 합니다. 이번 신청기간이 1년 이상이에요.</span></div><div class="sublab">추가 6개월 증빙 유형 <em>*</em></div><div class="wf-select" style="width:520px;">1. 본인 및 배우자가 3개월 이상 육아휴직을 사용한 부 또는 모<span class="caret">▾</span></div><div class="sublab">추가 6개월 신청기간</div><div class="remain"><div><b>2027.10.20 ~ 2027.10.29</b> (10일)</div><div class="hist">신청기간 중 1년을 넘는 부분이 자동으로 계산됩니다.</div></div><div class="sublab">증빙 서류 <em>*</em></div><div class="filebox"><div class="fhead"><div><b>배우자 육아휴직 사용 확인서</b><div class="fsub">고용보험 홈페이지에서 발급 · PDF·JPG·PNG, 파일당 10MB 이하</div></div><button class="btn btn-outline btn-sm " style="">파일 추가하기</button></div></div></div><div class="indicator" style="top:6px; left:-11px;">11</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>육아휴직 6+6 신청 여부<em>*</em></b><span>부모 공동 육아휴직 특례 적용 여부</span></div><div class="fs-field"><span class="wf-radio"><span class="dot on"></span>N (신청 안 함)</span><span class="wf-radio"><span class="dot "></span>Y (신청함)</span></div><div class="indicator" style="top:6px; left:-11px;">12</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>비상연락망 (연락처)<em>*</em></b><span>휴직 중 비상시 연락받을 번호</span></div><div class="fs-field"><div class="wf-input" style="width:320px;">010-2345-6789</div></div><div class="indicator" style="top:6px; left:-11px;">15</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>비상연락망 (사외메일)<em>*</em></b><span>회사 메일이 아닌 개인 메일</span></div><div class="fs-field"><div class="wf-input" style="width:420px;">insa.lee@gmail.com</div></div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>제출 서류</b><span>신청 시 첨부하거나 기한 내 제출</span></div><div class="fs-field"><div class="filebox"><div class="fhead"><div><b>가족관계증명서</b><div class="fsub">PDF·JPG·PNG, 파일당 10MB 이하 · 1개 첨부</div></div><button class="btn btn-outline btn-sm " style="">파일 바꾸기</button></div><div class="fitem">📎 가족관계증명서.pdf <span class="g">120KB</span><span style="flex:1"></span><a class="lnk">삭제</a></div></div><div class="mk" style="margin-top:8px;"><div class="wf-alert info"><span class="ai">i</span><span>지금 첨부하지 않은 서류는 <b>2026.10.18</b>(개시 예정일 2일 전)까지 소속 인사담당자에게 제출해 주세요. 기한 내 미제출 시 회사가 휴직 개시일을 지정해 통보할 수 있습니다.</span></div><div class="indicator" style="top:-10px; left:-12px;">17</div></div></div><div class="indicator" style="top:6px; left:-11px;">16</div></div>
+  <div class="stepnav"><span style="flex:1"></span><div class="mk" style=""><button class="btn btn-outline btn-sm " style="">다음 단계: 휴직 서약 ›</button><div class="indicator" style="top:-12px; left:-10px;">18</div></div></div>
+</div>
+
+<div class="actions">
+  <span class="anote">3단계를 모두 완료하면 신청할 수 있어요.</span>
+  <div class="mk" style=""><button class="btn btn-ghost  " style="">닫기</button><div class="indicator" style="top:-12px; left:-10px;">19</div></div>
+  <div class="mk" style=""><button class="btn btn-outline  " style="">임시저장</button><div class="indicator" style="top:-12px; left:-10px;">20</div></div>
+  <div class="mk" style=""><button class="btn btn-dark  is-dis" style="">신청</button><div class="indicator" style="top:-12px; left:-10px;">21</div></div>
+</div>
+<div class="card" style="padding:14px 18px; margin-top:16px; border-style:dashed;">
+  <div class="sublab" style="margin-top:0;">기타 유형 전용 항목 (선택한 유형에 따라 위 폼 안에 노출)</div>
+  <div class="fs-row mk "><div class="fs-label"><b>휴직기간<em>*</em></b><span>단기 육아휴직 · 1주 또는 2주 중 선택</span></div><div class="fs-field"><span class="wf-radio"><span class="dot on"></span>1주 (7일)</span><span class="wf-radio"><span class="dot "></span>2주 (14일)</span><span class="help" style="margin-left:12px;">→ 종료일 자동 계산(종료일 입력 disabled)</span></div><div class="indicator" style="top:6px; left:-11px;">5</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>자녀 학년<em>*</em></b><span>초등자녀 돌봄휴직 · 현재 재학 중인 학년</span></div><div class="fs-field"><div class="wf-select" style="width:200px;">2학년<span class="caret">▾</span></div></div><div class="indicator" style="top:6px; left:-11px;">9</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>휴직사유<em>*</em></b><span>단기 육아휴직</span></div><div class="fs-field"><span class="wf-radio"><span class="dot "></span>휴원 및 휴교</span><span class="wf-radio"><span class="dot "></span>방학</span><span class="wf-radio"><span class="dot "></span>자녀의 질병</span><span class="wf-radio"><span class="dot on"></span>기타</span><div class="wf-input" style="width:300px;">기타 사유를 입력해 주세요 (50자)</div></div><div class="indicator" style="top:6px; left:-11px;">13</div></div>
+  <div class="fs-row mk "><div class="fs-label"><b>신청사유<em>*</em></b><span>가족돌봄휴직 · 구체적으로 입력해 주세요</span></div><div class="fs-field"><div class="wf-input" style="width:100%; height:64px; position:relative;">예: 부친 수술 후 회복기 간병<span style="position:absolute; right:10px; bottom:6px; color:#adb5bd;">0/200</span></div></div><div class="indicator" style="top:6px; left:-11px;">14</div></div>
+</div>
+    </div>
+  </div>
+  
+</div></div>
+    <div class="ref-card"><div class="ref-title">휴직 유형별 입력 항목 (표시 순서 그대로)</div><table class="ref-table center"><thead><tr><th>항목</th><th>육아휴직</th><th>난임휴직</th><th>단기 육아휴직</th><th>가족돌봄휴직</th><th>초등자녀 돌봄휴직</th></tr></thead><tbody><tr><td>신청기간</td><td>●</td><td>●</td><td>● (종료일 자동)</td><td>●</td><td>●</td></tr><tr><td>휴직기간 (1주/2주)</td><td></td><td></td><td>●</td><td></td><td></td></tr><tr><td>해당 자녀</td><td>● (+임신 중 체크)</td><td></td><td>●</td><td></td><td>●</td></tr><tr><td>해당 가족</td><td></td><td></td><td></td><td>●</td><td></td></tr><tr><td>자녀 학년 (1~6학년)</td><td></td><td></td><td></td><td></td><td>●</td></tr><tr><td>잔여기간</td><td>●</td><td></td><td>●</td><td>●</td><td>●</td></tr><tr><td>추가 6개월 증빙</td><td>○ (1년 초과 시)</td><td></td><td></td><td></td><td></td></tr><tr><td>육아휴직 6+6 신청 여부</td><td>●</td><td></td><td>●</td><td></td><td></td></tr><tr><td>휴직사유</td><td></td><td></td><td>●</td><td></td><td></td></tr><tr><td>신청사유 (200자)</td><td></td><td></td><td></td><td>●</td><td></td></tr><tr><td>비상연락망 (연락처)</td><td>●</td><td>●</td><td>●</td><td>●</td><td>●</td></tr><tr><td>비상연락망 (사외메일)</td><td>●</td><td>●</td><td>●</td><td>●</td><td>●</td></tr><tr><td>제출 서류</td><td>가족관계증명서 / 임신 확인서</td><td>난임치료 병원 진단서 <b>(필수)</b></td><td>가족관계증명서, 사유 증빙</td><td>가족관계증명서, 진단서·입원확인서</td><td>가족관계증명서, 재학증명서 (복수)</td></tr></tbody></table></div><div class="ref-card"><div class="ref-title">입력 검증 규칙</div><table class="ref-table "><thead><tr><th>항목</th><th>규칙</th><th>오류 메시지</th></tr></thead><tbody><tr><td>휴직 유형</td><td>필수</td><td>휴직 유형을 선택해 주세요.</td></tr><tr><td>시작일</td><td>필수, 오늘 + 30일 이후(육아휴직은 + 7일 이후)</td><td>휴직 개시 예정일 N일 전까지 신청해야 해요. YYYY.MM.DD 이후 날짜를 선택해 주세요.</td></tr><tr><td>종료일</td><td>필수(단기 제외), 시작일 이후</td><td>종료일이 시작일보다 빠를 수 없어요.</td></tr><tr><td>기간 중복</td><td>승인·승인대기 건과 기간이 겹치면 안 됨</td><td>이미 승인대기인 가족돌봄휴직(2026.10.26 ~ 2026.11.06) 기간과 겹쳐요.</td></tr><tr><td>휴직기간</td><td>단기 육아휴직 필수</td><td>휴직기간(1주 또는 2주)을 선택해 주세요.</td></tr><tr><td>해당 자녀/가족/학년</td><td>필수</td><td>해당 자녀를 선택해 주세요. 등</td></tr><tr><td>잔여기간</td><td>사용 + 신청 ≤ 한도(+추가 6개월)</td><td>신청 가능한 기간(N일)보다 M일 더 신청했어요. 신청기간을 줄여 주세요.</td></tr><tr><td>추가 6개월</td><td>대상 시 증빙 유형·파일 필수</td><td>추가 6개월 증빙 유형을 선택해 주세요. / ○○를 첨부해 주세요.</td></tr><tr><td>휴직사유</td><td>필수, 기타 시 내용 필수</td><td>휴직 사유를 선택해 주세요. / 기타 사유를 입력해 주세요.</td></tr><tr><td>신청사유</td><td>필수</td><td>신청 사유를 입력해 주세요.</td></tr><tr><td>연락처</td><td>필수, 01[016789]-xxxx-xxxx</td><td>연락처 형식이 올바르지 않아요. 예: 010-1234-5678</td></tr><tr><td>사외메일</td><td>필수, 메일 형식, 회사 도메인(@hrd-portal.co.kr) 불가</td><td>회사 메일은 휴직 중 확인이 어려울 수 있어요. 개인 메일 주소를 입력해 주세요.</td></tr><tr><td>제출 서류</td><td>난임휴직만 필수</td><td>난임치료 병원 진단서를 첨부해 주세요.</td></tr></tbody></table><div class="help" style="margin-top:8px;">날짜·기간·잔여기간 오류는 값이 들어온 즉시 표시하고, 나머지 오류는 [다음 단계]를 한 번 누른 뒤부터 표시한다.</div></div><div class="ref-card"><div class="ref-title">잔여기간 기준 (예시값 — 사내 규정 확정 필요)</div><table class="ref-table "><thead><tr><th>유형</th><th>한도</th><th>계산 단위</th></tr></thead><tbody><tr><td>육아휴직</td><td>365일 (+ 추가 6개월 183일)</td><td>자녀 1명당, 단기 육아휴직과 합산</td></tr><tr><td>단기 육아휴직</td><td>365일</td><td>자녀 1명당, 육아휴직과 합산</td></tr><tr><td>가족돌봄휴직</td><td>90일</td><td>연간 합산</td></tr><tr><td>초등자녀 돌봄휴직</td><td>365일</td><td>자녀 1명당</td></tr><tr><td>난임휴직</td><td>(잔여기간 미표시)</td><td>—</td></tr></tbody></table></div>
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>저장 상태 표시</b><div class="dtype">Badge + Text</div></td><td>[새 신청서]/[작성중] + "아직 저장하지 않았어요" / "임시저장 2026.09.28 14:30" / "임시저장 하지 않은 사항이 있어요" / "임시저장된 내용을 불러왔어요"</td><td>입력 변경 시 실시간 갱신</td></tr><tr><td class="num">2</td><td><b>단계 표시</b><div class="dtype">Stepper (3단계)</div></td><td>작성 중 / 완료(✓) / 작성 전 / 잠김</td><td>도달 가능한 단계만 클릭 이동. 앞 단계 미완료 시 잠김</td></tr><tr><td class="num">3</td><td><b>휴직 유형</b><div class="dtype">Select</div></td><td>5개 유형</td><td>변경 시 유형 전용 항목 초기화(기간·비상연락망 유지). 미선택 시 "휴직 유형을 선택하면 필요한 입력 항목이 표시됩니다."</td></tr><tr><td class="num">4</td><td><b>신청기간</b><div class="dtype">DatePicker ×2</div></td><td>시작일·종료일, 총 일수 표시</td><td>최소 시작일 이전 날짜 비활성. 종료일 < 시작일이면 종료일 초기화</td></tr><tr><td class="num">5</td><td><b>단기 휴직기간</b><div class="dtype">RadioGroup (inline)</div></td><td>1주(7일) / 2주(14일)</td><td>선택 시 종료일 자동 계산(종료일 disabled)</td></tr><tr><td class="num">6</td><td><b>30일 미만 경고</b><div class="dtype">Alert (warning)</div></td><td>육아휴직 · 개시일까지 30일 미만</td><td>예외 사유 증빙 첨부 안내</td></tr><tr><td class="num">7</td><td><b>해당 자녀/가족</b><div class="dtype">RadioGroup</div></td><td>가족관계 등록 인원</td><td>선택 시 잔여기간 재계산</td></tr><tr><td class="num">8</td><td><b>임신 중 육아휴직</b><div class="dtype">Checkbox</div></td><td>육아휴직 전용</td><td>체크 시 자녀 선택 숨김, 첨부 서류가 "임신 확인서"로 변경</td></tr><tr><td class="num">9</td><td><b>자녀 학년</b><div class="dtype">Select</div></td><td>1~6학년 (초등자녀 돌봄휴직)</td><td>—</td></tr><tr><td class="num">10</td><td><b>잔여기간</b><div class="dtype">InfoBox</div></td><td>신청 가능 일수 + 사용 내역(승인·승인대기)</td><td>3건 초과 시 [N건 더 보기]/[접기]. 단기·육아휴직은 합산 한도이며 유형 라벨 표시</td></tr><tr><td class="num">11</td><td><b>추가 6개월 증빙</b><div class="dtype">Section (조건부)</div></td><td>같은 자녀 기준 1년 초과 시 노출. 증빙 유형 + 추가 기간 자동 계산 + 증빙 파일</td><td>증빙 유형 3종: 부모 모두 3개월 이상 사용 / 한부모 / 장애아동 부모</td></tr><tr><td class="num">12</td><td><b>6+6 신청 여부</b><div class="dtype">RadioGroup</div></td><td>N(기본) / Y</td><td>—</td></tr><tr><td class="num">13</td><td><b>휴직사유</b><div class="dtype">RadioGroup + TextInput</div></td><td>단기 육아휴직. 기타 선택 시 50자 입력란 노출</td><td>—</td></tr><tr><td class="num">14</td><td><b>신청사유</b><div class="dtype">Textarea</div></td><td>가족돌봄휴직. 최대 200자, 카운터</td><td>입력 중에는 화면 전체를 다시 그리지 않음(커서 유지)</td></tr><tr><td class="num">15</td><td><b>비상연락망</b><div class="dtype">TextInput ×2</div></td><td>휴대폰 번호 / 개인 메일</td><td>형식 검증(아래 검증 규칙)</td></tr><tr><td class="num">16</td><td><b>제출 서류</b><div class="dtype">FileBox</div></td><td>유형별 안내 문구, PDF·JPG·PNG, 10MB 이하</td><td>단일 첨부 유형은 [파일 바꾸기]로 교체, 복수 유형은 추가. [삭제]</td></tr><tr><td class="num">17</td><td><b>서류 제출 기한 안내</b><div class="dtype">Alert (info)</div></td><td>선택 첨부 유형만</td><td>시작일 입력 시 "개시 예정일 2일 전" 실제 날짜 표시</td></tr><tr><td class="num">18</td><td><b>다음 단계</b><div class="dtype">Button (outline)</div></td><td>"다음 단계: 휴직 서약 ›"</td><td>오류가 있으면 오류 표시 + 첫 오류 항목으로 스크롤</td></tr><tr><td class="num">19</td><td><b>닫기</b><div class="dtype">Button (ghost, 하단 고정)</div></td><td>목록으로</td><td>저장 안 된 변경이 있으면 SCR-008(닫기 확인)</td></tr><tr><td class="num">20</td><td><b>임시저장</b><div class="dtype">Button (outline, 하단 고정)</div></td><td>작성중 상태로 저장</td><td>휴직 유형 미선택 시 저장 불가(오류 표시). 저장 시각 표시</td></tr><tr><td class="num">21</td><td><b>신청</b><div class="dtype">Button (primary, 하단 고정)</div></td><td>제출</td><td>1~3단계 모두 완료 시 활성 → SCR-008(제출 확인)</td></tr></tbody></table>
+    <h3 style="margin-top:18px !important;">상태별 화면</h3><table class="ref-table small"><thead><tr><th>상태</th><th>조건</th><th>표시 내용</th></tr></thead><tbody><tr><td>기본(신규)</td><td>유형 미선택</td><td>휴직 유형 Select + "유형을 선택하면 항목이 표시됩니다" 안내</td></tr><tr><td>유형 선택</td><td>유형 선택됨</td><td>유형별 입력 항목 매트릭스대로 노출</td></tr><tr><td>불러오기</td><td>작성중 건 열기</td><td>저장된 값 복원, "임시저장된 내용을 불러왔어요"</td></tr><tr><td>오류</td><td>검증 실패</td><td>항목 하단 오류 문구 + 입력 테두리 강조, 첫 오류로 스크롤</td></tr><tr><td>잔여 초과</td><td>사용 + 신청 > 한도</td><td>잔여기간 박스 강조 + 오류 문구</td></tr></tbody></table>
+  </div>
+</div>
+
+<div id="scr-005" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-005</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">신청서 작성 — 2단계 휴직 서약</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">진입</span><div class="meta-value">1단계 완료 후 [다음 단계] 또는 Stepper</div></div><div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">공통</div></div><div style="margin-left:20px;"><span class="meta-label">관련 기능</span><div class="meta-value">휴직 서약 동의</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container">
+<div class="app">
+  <div class="app-top">
+    <span class="logo-mark">E</span><b style="font-size:14px;">ERP Portal</b>
+    <span class="mega">인사관리</span><span class="mega">근태관리</span><span class="mega on">복무관리</span><span class="mega">교육·HRD</span><span class="mega">전자결재</span>
+    <div class="wf-input" style="width:260px; margin-left:16px; color:#adb5bd;">🔍 메뉴 검색 (예: 초과근무, 결재대기...)</div>
+    <span style="flex:1"></span>
+    <span class="ticon">조직도</span><span class="ticon">알림</span><span class="ticon">공지</span>
+    <span class="avatar">이</span><span style="font-size:12px;"><b>이인사</b><br><span style="color:#868e96;">HRD기획팀 · 대리</span></span>
+  </div>
+  <div class="app-body">
+    <div class="app-side">
+      <div class="side-h">⭐ 자주 쓰는 업무</div>
+      <div class="side-i">복무 신청/현황</div>
+      <div class="side-h" style="margin-top:14px;">‹ 휴직/퇴직신청</div>
+      <div class="side-i on">휴직 신청 <span class="new">NEW</span></div>
+    </div>
+    <div class="app-main">
+      <div class="crumb">ERP Portal › 복무관리 › 휴직/퇴직신청 › 휴직 신청 › <b>신청서 작성</b></div>
+      <div class="ptitle">휴직 신청서 작성</div>
+      <div class="psub">이 화면 전용 메뉴는 좌측 사이드바에서 확인하세요</div>
+      
+<div class="card" style="padding:18px 18px 8px;">
+  <div class="fstatus"><span class="badge badge-outline">작성중</span><span>임시저장 하지 않은 사항이 있어요</span></div>
+  <div style="margin:12px 0;"><div class="stepper"><div class="stp done"><span class="n">✓</span><span><b>1단계. 휴직 신청·제출서류</b><small>완료</small></span></div><div class="stp-line"></div><div class="stp cur"><span class="n">2</span><span><b>2단계. 휴직 서약</b><small>작성 중</small></span></div><div class="stp-line"></div><div class="stp "><span class="n">3</span><span><b>3단계. 결재선</b><small>작성 전</small></span></div></div></div>
+  <div class="stephead"><b>2단계. 휴직 서약</b><span>휴직 기간 중 지켜야 할 사항을 확인하고 서약합니다.</span></div>
+  <div class="mk" style="display:inline-block; margin:6px 0 10px;"><span class="wf-chk circle"><span class="box"></span>아래 서약 내용에 모두 동의합니다</span><div class="indicator" style="top:-10px; left:-24px;">1</div></div>
+  <div class="pledges"><div class="pitem"><p>1. 휴직자는 그 기간 중에 휴직 사유가 소멸된 때에는 <b>30일 이내에 인사권자에게 반드시 신고</b>해야 합니다.</p><div class="mk" style="display:inline-block;"><span class="wf-chk on"><span class="box">✓</span>본인(이인사)은 이에 대해 충분히 인지하였으며, 이에 대한 불이익은 본인(이인사)이 책임지겠습니다.</span><div class="indicator" style="top:-10px; left:-24px;">2</div></div></div><div class="pitem"><p>2. 비상 연락망은 비상상황 발생 시에 한해 활용될 예정이며, 휴직 기간 동안 사내 메일, 업무용 폰, 비상 연락망을 통해 연락이 되지 않거나 안내받은 인사/보수/복지제도 등을 사전 통보 없이 이행하지 않을 경우,</p><span class="wf-chk"><span class="box"></span>이에 대한 불이익을 본인(이인사)이 책임지겠습니다.</span></div><div class="pitem"><p>3. 휴직 후 복직 시 근무 이력, 직무 전문성 및 부서별 인력 상황 등을 종합적으로 고려하여 배치 부서가 결정되며, 복직 전 개별 연락 등을 통한 <b>사전 내정 사례로 확인될 경우 발령 취소, 관련자 엄중 인사 조치 등 불이익</b>이 있을 수 있습니다. (단, 6개월 이상 휴직에 한함)</p><span class="wf-chk"><span class="box"></span>본인(이인사)은 이에 대해 충분히 인지하였으며, 복직 운영기준에 따른 부서 배치에 동의합니다.</span></div></div>
+  <div class="mk" style="display:inline-block; margin-top:10px;"><div class="pmeta"><span>서약자 <b>이인사</b></span><span>서약일 <b>2026.09.28</b></span></div><div class="indicator" style="top:-10px; left:-24px;">3</div></div>
+  <div class="stepnav"><div class="mk" style=""><button class="btn btn-outline btn-sm " style="">‹ 이전 단계로</button><div class="indicator" style="top:-12px; left:-10px;">4</div></div><span style="flex:1"></span><button class="btn btn-outline btn-sm " style="">다음 단계: 결재선 ›</button></div>
+</div>
+
+<div class="actions">
+  <span class="anote">3단계를 모두 완료하면 신청할 수 있어요.</span>
+  <button class="btn btn-ghost  " style="">닫기</button>
+  <button class="btn btn-outline  " style="">임시저장</button>
+  <button class="btn btn-dark  is-dis" style="">신청</button>
+</div>
+    </div>
+  </div>
+  
+</div></div>
+    
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>전체 동의</b><div class="dtype">Checkbox (circle, master)</div></td><td>3개 서약 일괄</td><td>체크/해제 시 하위 전체 반영, 하위 모두 체크 시 자동 체크</td></tr><tr><td class="num">2</td><td><b>서약 항목</b><div class="dtype">Checkbox (icon) ×3</div></td><td>서약 본문 + 동의 문구(신청자 이름 삽입)</td><td>개별 체크. 3번은 6개월 이상 휴직 대상</td></tr><tr><td class="num">3</td><td><b>서약자/서약일</b><div class="dtype">Text</div></td><td>신청자명, 오늘 날짜</td><td>읽기 전용</td></tr><tr><td class="num">4</td><td><b>이전/다음</b><div class="dtype">Button (outline)</div></td><td>단계 이동</td><td>미동의 항목이 있으면 "모든 서약 항목에 동의해야 다음 단계로 넘어갈 수 있어요."</td></tr></tbody></table>
+    
+  </div>
+</div>
+
+<div id="scr-006" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-006</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">신청서 작성 — 3단계 결재선</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">진입</span><div class="meta-value">2단계 완료 후</div></div><div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">공통</div></div><div style="margin-left:20px;"><span class="meta-label">관련 기능</span><div class="meta-value">결재선 확인(자동 지정·변경 불가), 제출</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container">
+<div class="app">
+  <div class="app-top">
+    <span class="logo-mark">E</span><b style="font-size:14px;">ERP Portal</b>
+    <span class="mega">인사관리</span><span class="mega">근태관리</span><span class="mega on">복무관리</span><span class="mega">교육·HRD</span><span class="mega">전자결재</span>
+    <div class="wf-input" style="width:260px; margin-left:16px; color:#adb5bd;">🔍 메뉴 검색 (예: 초과근무, 결재대기...)</div>
+    <span style="flex:1"></span>
+    <span class="ticon">조직도</span><span class="ticon">알림</span><span class="ticon">공지</span>
+    <span class="avatar">이</span><span style="font-size:12px;"><b>이인사</b><br><span style="color:#868e96;">HRD기획팀 · 대리</span></span>
+  </div>
+  <div class="app-body">
+    <div class="app-side">
+      <div class="side-h">⭐ 자주 쓰는 업무</div>
+      <div class="side-i">복무 신청/현황</div>
+      <div class="side-h" style="margin-top:14px;">‹ 휴직/퇴직신청</div>
+      <div class="side-i on">휴직 신청 <span class="new">NEW</span></div>
+    </div>
+    <div class="app-main">
+      <div class="crumb">ERP Portal › 복무관리 › 휴직/퇴직신청 › 휴직 신청 › <b>신청서 작성</b></div>
+      <div class="ptitle">휴직 신청서 작성</div>
+      <div class="psub">이 화면 전용 메뉴는 좌측 사이드바에서 확인하세요</div>
+      
+<div class="card" style="padding:18px 18px 8px;">
+  <div class="fstatus"><span class="badge badge-outline">작성중</span><span>임시저장 2026.09.28 14:30</span></div>
+  <div style="margin:12px 0;"><div class="stepper"><div class="stp done"><span class="n">✓</span><span><b>1단계. 휴직 신청·제출서류</b><small>완료</small></span></div><div class="stp-line"></div><div class="stp done"><span class="n">✓</span><span><b>2단계. 휴직 서약</b><small>완료</small></span></div><div class="stp-line"></div><div class="stp cur"><span class="n">3</span><span><b>3단계. 결재선</b><small>작성 중</small></span></div></div></div>
+  <div class="stephead"><b>3단계. 결재선</b><span>신청서를 결재할 1차·2차 결재자를 확인합니다.</span></div>
+  <div class="mk" style=""><table class="ref-table wf"><thead><tr><th>결재 구분</th><th>성명</th><th>소속</th><th>직책</th></tr></thead><tbody><tr><td>기안<div class="g">신청자 본인</div></td><td>이인사</td><td>HRD기획팀</td><td>대리</td></tr><tr><td>1차 결재<div class="g">소속 부서장</div></td><td>박정호</td><td>HRD기획팀</td><td>팀장</td></tr><tr><td>2차 결재<div class="g">인사담당</div></td><td>최은영</td><td>인사팀</td><td>부장</td></tr></tbody></table><div class="indicator" style="top:-10px; left:-24px;">1</div></div>
+  <div class="help" style="margin-top:8px;">결재선은 소속과 인사 기준에 따라 자동으로 지정되며, 결재는 1차 → 2차 순서로 진행됩니다.</div>
+  <div class="stepnav"><button class="btn btn-outline btn-sm " style="">‹ 이전 단계로</button></div>
+</div>
+<div class="actions"><button class="btn btn-ghost  " style="">닫기</button><button class="btn btn-outline  " style="">임시저장</button><div class="mk" style=""><button class="btn btn-dark  " style="">신청</button><div class="indicator" style="top:-12px; left:-10px;">2</div></div></div>
+    </div>
+  </div>
+  
+</div></div>
+    
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>결재선 테이블</b><div class="dtype">DataTable (readonly)</div></td><td>기안 / 1차 / 2차</td><td>읽기 전용. 3단계를 한 번 열면 단계 완료 처리</td></tr><tr><td class="num">2</td><td><b>신청</b><div class="dtype">Button (primary)</div></td><td>제출</td><td>SCR-008(제출 확인) → 승인대기 상태로 저장, 목록 이동 + 접수 배너</td></tr></tbody></table>
+    
+  </div>
+</div>
+
+<div id="scr-007" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-007</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">신청서 상세 (읽기)</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">URL</span><div class="meta-value">/leave/apply/:id</div></div><div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">공통</div></div><div style="margin-left:20px;"><span class="meta-label">접근 권한</span><div class="meta-value">로그인 사용자(본인)</div></div><div style="margin-left:20px;"><span class="meta-label">대상</span><div class="meta-value">승인대기 / 승인 / 반려 (작성중은 SCR-004로 열림)</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container">
+<div class="app">
+  <div class="app-top">
+    <span class="logo-mark">E</span><b style="font-size:14px;">ERP Portal</b>
+    <span class="mega">인사관리</span><span class="mega">근태관리</span><span class="mega on">복무관리</span><span class="mega">교육·HRD</span><span class="mega">전자결재</span>
+    <div class="wf-input" style="width:260px; margin-left:16px; color:#adb5bd;">🔍 메뉴 검색 (예: 초과근무, 결재대기...)</div>
+    <span style="flex:1"></span>
+    <span class="ticon">조직도</span><span class="ticon">알림</span><span class="ticon">공지</span>
+    <span class="avatar">이</span><span style="font-size:12px;"><b>이인사</b><br><span style="color:#868e96;">HRD기획팀 · 대리</span></span>
+  </div>
+  <div class="app-body">
+    <div class="app-side">
+      <div class="side-h">⭐ 자주 쓰는 업무</div>
+      <div class="side-i">복무 신청/현황</div>
+      <div class="side-h" style="margin-top:14px;">‹ 휴직/퇴직신청</div>
+      <div class="side-i on">휴직 신청 <span class="new">NEW</span></div>
+    </div>
+    <div class="app-main">
+      <div class="crumb">ERP Portal › 복무관리 › 휴직/퇴직신청 › 휴직 신청 › <b>신청서 상세</b></div>
+      <div class="ptitle">휴직 신청서 상세</div>
+      <div class="psub">예시: 반려 건</div>
+      
+<div class="card" style="padding:18px 18px 8px;">
+  <div class="mk" style="display:inline-block;"><div class="rtitle"><b>난임휴직 신청서</b> <span class="badge badge-rejected">반려</span></div><div class="indicator" style="top:-10px; left:-24px;">1</div></div>
+  <div class="mk" style="display:inline-block;"><div class="rmeta">신청자 이인사 · HRD기획팀 대리 · 신청일 2026.04.20</div><div class="indicator" style="top:-10px; left:-24px;">2</div></div>
+  <div class="mk" style="margin-top:12px;"><div class="wf-alert err"><span class="ai">!</span><span><b>반려 사유</b>&nbsp; 증빙서류(난임치료 시술 확인서)가 휴직 개시 예정일 2일 전까지 제출되지 않았습니다. 서류를 준비해 다시 신청해 주세요.</span></div><div class="indicator" style="top:-10px; left:-24px;">3</div></div>
+  <div class="mk" style="margin-top:8px; opacity:.6; border:1px dashed #adb5bd; border-radius:8px;"><div class="wf-alert warn"><span class="ai">⚠</span><span>(승인대기 + 첨부 없음일 때) 증빙서류가 첨부되지 않았어요. <b>YYYY.MM.DD</b>(개시 예정일 2일 전)까지 소속 인사담당자에게 제출해 주세요.</span></div><div class="indicator" style="top:-10px; left:-24px;">4</div></div>
+  <div class="stephead" style="margin-top:16px;"><b>1. 휴직 신청 및 제출서류</b></div>
+  <div class="mk" style=""><div class="fs-row"><div class="fs-label"><b>신청기간</b></div><div class="fs-field">2026.06.01 ~ 2026.08.31 <span class="g">(총 92일)</span></div></div><div class="fs-row"><div class="fs-label"><b>비상연락망 (연락처)</b></div><div class="fs-field">010-2345-6789</div></div><div class="fs-row"><div class="fs-label"><b>비상연락망 (사외메일)</b></div><div class="fs-field">insa.lee@gmail.com</div></div><div class="fs-row"><div class="fs-label"><b>제출 서류</b></div><div class="fs-field"><span class="g">첨부 없음</span></div></div><div class="indicator" style="top:-10px; left:-24px;">5</div></div>
+  <div class="stephead" style="margin-top:16px;"><b>2. 휴직 서약</b></div>
+  <div class="mk" style=""><div class="pledges"><div class="pitem"><p>1. 휴직자는 그 기간 중에 휴직 사유가 소멸된 때에는 <b>30일 이내에 인사권자에게 반드시 신고</b>해야 합니다.</p><div class="agree">✓ 본인(이인사)은 이에 대해 충분히 인지하였으며, 이에 대한 불이익은 본인(이인사)이 책임지겠습니다. <em>동의</em></div></div><div class="pitem"><p>2. 비상 연락망은 비상상황 발생 시에 한해 활용될 예정이며, 휴직 기간 동안 사내 메일, 업무용 폰, 비상 연락망을 통해 연락이 되지 않거나 안내받은 인사/보수/복지제도 등을 사전 통보 없이 이행하지 않을 경우,</p><div class="agree">✓ 이에 대한 불이익을 본인(이인사)이 책임지겠습니다. <em>동의</em></div></div><div class="pitem"><p>3. 휴직 후 복직 시 근무 이력, 직무 전문성 및 부서별 인력 상황 등을 종합적으로 고려하여 배치 부서가 결정되며, 복직 전 개별 연락 등을 통한 <b>사전 내정 사례로 확인될 경우 발령 취소, 관련자 엄중 인사 조치 등 불이익</b>이 있을 수 있습니다. (단, 6개월 이상 휴직에 한함)</p><div class="agree">✓ 본인(이인사)은 이에 대해 충분히 인지하였으며, 복직 운영기준에 따른 부서 배치에 동의합니다. <em>동의</em></div></div></div><div class="pmeta" style="margin-top:8px;"><span>서약자 <b>이인사</b></span><span>서약일 <b>2026.04.20</b></span></div><div class="indicator" style="top:-10px; left:-24px;">6</div></div>
+  <div class="stephead" style="margin-top:16px;"><b>3. 결재선</b></div>
+  <div class="mk" style=""><table class="ref-table wf"><thead><tr><th>결재 구분</th><th>성명</th><th>소속</th><th>직책</th><th>처리 상태</th><th>처리일</th></tr></thead><tbody><tr><td>기안<div class="g">신청자 본인</div></td><td>이인사</td><td>HRD기획팀</td><td>대리</td><td><span class="badge badge-light">상신</span></td><td>2026.04.20</td></tr><tr><td>1차 결재<div class="g">소속 부서장</div></td><td>박정호</td><td>HRD기획팀</td><td>팀장</td><td><span class="badge badge-rejected">반려</span></td><td>2026.04.24</td></tr><tr><td>2차 결재<div class="g">인사담당</div></td><td>최은영</td><td>인사팀</td><td>부장</td><td><span class="badge badge-outline">미진행</span></td><td><span class="g">-</span></td></tr></tbody></table><div class="indicator" style="top:-10px; left:-24px;">7</div></div>
+  <div style="height:12px"></div>
+</div>
+<div class="actions">
+  <div class="mk" style=""><button class="btn btn-outline  " style="">목록으로</button><div class="indicator" style="top:-12px; left:-10px;">8</div></div>
+  <div class="mk" style=""><button class="btn btn-sec  " style="opacity:.55; border:1px dashed #adb5bd;">신청 취소</button><div class="indicator" style="top:-12px; left:-10px;">9</div></div>
+  <div class="mk" style=""><button class="btn btn-dark  " style="">다시 신청하기</button><div class="indicator" style="top:-12px; left:-10px;">10</div></div>
+</div>
+<div class="help" style="text-align:right;">※ [신청 취소]는 승인대기 건에서만, [다시 신청하기]는 반려 건에서만 노출 (점선 = 조건부 요소)</div>
+    </div>
+  </div>
+  
+</div></div>
+    <div class="ref-card"><div class="ref-title">결재 진행 상태 규칙</div><table class="ref-table center"><thead><tr><th>신청상태</th><th>기안</th><th>1차 결재</th><th>2차 결재</th></tr></thead><tbody><tr><td>승인대기</td><td><span class="badge badge-light">상신</span></td><td><span class="badge badge-pending">결재 대기</span></td><td><span class="badge badge-outline">미진행</span></td></tr><tr><td>승인</td><td><span class="badge badge-light">상신</span></td><td><span class="badge badge-approved">승인</span></td><td><span class="badge badge-approved">승인</span></td></tr><tr><td>반려(1차)</td><td><span class="badge badge-light">상신</span></td><td><span class="badge badge-rejected">반려</span></td><td><span class="badge badge-outline">미진행</span></td></tr><tr><td>반려(2차)</td><td><span class="badge badge-light">상신</span></td><td><span class="badge badge-approved">승인</span></td><td><span class="badge badge-rejected">반려</span></td></tr></tbody></table></div>
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>제목 + 상태</b><div class="dtype">Heading + Badge</div></td><td>"{유형} 신청서" + 상태 뱃지</td><td>—</td></tr><tr><td class="num">2</td><td><b>메타 정보</b><div class="dtype">Text</div></td><td>신청자 · 소속 · 신청일</td><td>—</td></tr><tr><td class="num">3</td><td><b>반려 사유</b><div class="dtype">Alert (destructive)</div></td><td>반려 건만</td><td>읽기 전용</td></tr><tr><td class="num">4</td><td><b>서류 미제출 경고</b><div class="dtype">Alert (warning)</div></td><td>승인대기 + 첨부 없음</td><td>제출 기한(개시일 2일 전) 표시</td></tr><tr><td class="num">5</td><td><b>신청 항목</b><div class="dtype">DescriptionList</div></td><td>작성 화면과 같은 항목·순서, 값만 표시</td><td>값 없으면 "-". 잔여기간·사용내역 포함</td></tr><tr><td class="num">6</td><td><b>서약 내역</b><div class="dtype">AgreeList</div></td><td>항목별 동의/미동의</td><td>읽기 전용</td></tr><tr><td class="num">7</td><td><b>결재 진행</b><div class="dtype">DataTable</div></td><td>처리 상태: 상신 / 결재 대기 / 승인 / 반려 / 미진행 + 처리일</td><td>읽기 전용</td></tr><tr><td class="num">8</td><td><b>목록으로</b><div class="dtype">Button (outline)</div></td><td>목록 복귀</td><td>이전 필터·페이지·스크롤 위치 복원</td></tr><tr><td class="num">9</td><td><b>신청 취소</b><div class="dtype">Button (secondary)</div></td><td>승인대기만</td><td>SCR-008 → 작성중으로 되돌림, 목록 + "신청을 취소했어요" 배너</td></tr><tr><td class="num">10</td><td><b>다시 신청하기</b><div class="dtype">Button (primary)</div></td><td>반려만</td><td>유형·대상·사유·연락처 등 복사한 새 신청서(SCR-004). 기간·서류·서약·결재선은 새로 입력</td></tr></tbody></table>
+    
+  </div>
+</div>
+
+<div id="scr-008" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-008</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">확인 다이얼로그</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">공통 (Dialog)</div></div><div style="margin-left:20px;"><span class="meta-label">공통 동작</span><div class="meta-value">왼쪽 = 유지(닫기), 오른쪽 = 실행 · ×/배경 클릭/ESC로 닫힘</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container"><div class="dim" style="position:relative; border-radius:10px; padding:28px; display:grid; grid-template-columns:1fr 1fr; gap:24px;"><div><div class="dtag">삭제</div><div class="dialog" style="width:100%;"><div class="dlg-head"><div class="mk" style="display:inline-block;"><b>작성중인 신청을 삭제할까요?</b><div class="indicator" style="top:-12px; left:-24px;">1</div></div><span style="flex:1"></span><div class="mk" style="display:inline-block;"><span class=x>×</span><div class="indicator" style="top:-12px; left:14px;">2</div></div></div><div class="mk" style=""><p class="ddesc">작성중(임시저장) N건을 삭제합니다. 삭제한 내용은 되돌릴 수 없습니다. (선택한 건 중 작성중이 아닌 M건은 삭제되지 않습니다)</p><div class="indicator" style="top:-10px; left:-24px;">3</div></div><div style="display:flex; gap:8px;"><div class="mk" style="flex:1;"><button class="btn btn-sec  " style="width:100%; justify-content:center;">삭제하지 않기</button><div class="indicator" style="top:-10px; left:-24px;">4</div></div><div class="mk" style="flex:1;"><button class="btn btn-dark  " style="width:100%; justify-content:center;">삭제하기</button><div class="indicator" style="top:-10px; left:-24px;">5</div></div></div></div></div><div><div class="dtag">신청 취소</div><div class="dialog" style="width:100%;"><div class="dlg-head"><b>휴직 신청을 취소할까요?</b><span style="flex:1"></span><span class="x">×</span></div><p class="ddesc">승인대기 N건의 신청이 취소되고 작성중(임시저장) 상태로 돌아갑니다.</p><div style="display:flex; gap:8px;"><button class="btn btn-sec  " style="flex:1; justify-content:center;">신청 유지하기</button><button class="btn btn-dark  " style="flex:1; justify-content:center;">신청 취소하기</button></div></div></div><div><div class="dtag">제출</div><div class="dialog" style="width:100%;"><div class="dlg-head"><b>휴직 신청서를 제출할까요?</b><span style="flex:1"></span><span class="x">×</span></div><p class="ddesc">제출하면 1차 결재자(박정호 팀장)에게 결재가 요청됩니다. 제출 후에는 수정할 수 없고, 승인 전까지 신청 취소만 할 수 있습니다.</p><div style="display:flex; gap:8px;"><button class="btn btn-sec  " style="flex:1; justify-content:center;">계속 작성하기</button><button class="btn btn-dark  " style="flex:1; justify-content:center;">신청하기</button></div></div></div><div><div class="dtag">작성 닫기</div><div class="dialog" style="width:100%;"><div class="dlg-head"><b>작성 중인 신청서를 닫을까요?</b><span style="flex:1"></span><span class="x">×</span></div><p class="ddesc">임시저장하지 않은 내용은 사라집니다. 나중에 이어서 작성하려면 먼저 임시저장해 주세요.</p><div style="display:flex; gap:8px;"><button class="btn btn-sec  " style="flex:1; justify-content:center;">계속 작성하기</button><button class="btn btn-dark  " style="flex:1; justify-content:center;">저장하지 않고 닫기</button></div></div></div></div></div>
+    <div class="ref-card"><div class="ref-title">다이얼로그 종류</div><table class="ref-table "><thead><tr><th>구분</th><th>유지</th><th>실행</th><th>결과</th></tr></thead><tbody><tr><td>삭제</td><td>삭제하지 않기</td><td>삭제하기</td><td>목록에서 제거</td></tr><tr><td>신청 취소</td><td>신청 유지하기</td><td>신청 취소하기</td><td>상태 → 작성중, 신청일 초기화</td></tr><tr><td>제출</td><td>계속 작성하기</td><td>신청하기</td><td>상태 → 승인대기, 목록 + 접수 배너</td></tr><tr><td>작성 닫기</td><td>계속 작성하기</td><td>저장하지 않고 닫기</td><td>목록 이동</td></tr></tbody></table></div>
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>제목</b><div class="dtype">Text</div></td><td>동작을 묻는 질문형 제목</td><td>—</td></tr><tr><td class="num">2</td><td><b>닫기</b><div class="dtype">IconButton (×)</div></td><td>× / 배경 클릭 / ESC</td><td>유지와 동일하게 닫힘</td></tr><tr><td class="num">3</td><td><b>설명</b><div class="dtype">Text</div></td><td>결과와 영향 안내. 일괄 처리 시 제외 건수 포함</td><td>—</td></tr><tr><td class="num">4</td><td><b>유지 버튼</b><div class="dtype">Button (secondary)</div></td><td>왼쪽. 현재 상태 유지</td><td>다이얼로그 닫기</td></tr><tr><td class="num">5</td><td><b>실행 버튼</b><div class="dtype">Button (primary)</div></td><td>오른쪽. 동작 실행</td><td>실행 후 목록 재렌더, 스크롤 위치 복원</td></tr></tbody></table>
+    
+  </div>
+</div>
+
+<div id="scr-009" class="screen-section">
+  <div class="meta-box" style="margin:60px 24px 0 24px;">
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:10px;">
+      <span class="screen-id-badge">SCR-009</span>
+      <div><span class="meta-label">화면명</span><div class="meta-value" style="font-weight:600; font-size:15px;">바텀시트 (모바일 선택·달력)</div></div>
+      <div style="margin-left:20px;"><span class="meta-label">플랫폼</span><div class="meta-value">모바일 (≤680px) — PC는 드롭다운·팝오버 유지</div></div><div style="margin-left:20px;"><span class="meta-label">적용 대상</span><div class="meta-value">목록 필터, 휴직 유형, 자녀 학년, 추가 6개월 증빙 유형, 모든 날짜 입력</div></div>
+    </div></div>
+  <div class="wireframe-wrap" style="padding:20px 24px;">
+    <div class="ind-container">
+<div style="position:relative; width:760px; height:680px; margin:0 auto;">
+ <div class="device" style="position:absolute; left:0; top:0;">
+  <div class="hdr"></div><div class="hdr-title" style="left:14px;">휴직 신청</div>
+  <div style="position:absolute; left:0; top:48px; width:344px; height:600px; background:#868e96;"></div>
+  <div style="position:absolute; left:0; top:280px; width:344px; height:380px; background:#fff; border-radius:16px 16px 0 0;"></div>
+  <div style="position:absolute; left:152px; top:290px; width:40px; height:4px; background:#ced4da; border-radius:2px;"></div>
+  <div style="position:absolute; left:20px; top:316px; font-size:15px; font-weight:700; color:#212529;">휴직 유형</div>
+  <div style="position:absolute; right:18px; top:312px; font-size:18px; color:#495057;">×</div>
+  <div style="position:absolute; left:0; top:356px; width:344px; height:40px; border-bottom:1px solid #e9ecef; "></div><div style="position:absolute; left:20px; top:368px; font-size:13px; color:#212529; ">전체</div><div style="position:absolute; left:0; top:396px; width:344px; height:40px; border-bottom:1px solid #e9ecef; background:#f1f3f5;"></div><div style="position:absolute; left:20px; top:408px; font-size:13px; color:#212529; font-weight:700;">육아휴직</div><div style="position:absolute; right:20px; top:408px; font-size:13px; font-weight:700;">✓</div><div style="position:absolute; left:0; top:436px; width:344px; height:40px; border-bottom:1px solid #e9ecef; "></div><div style="position:absolute; left:20px; top:448px; font-size:13px; color:#212529; ">난임휴직</div><div style="position:absolute; left:0; top:476px; width:344px; height:40px; border-bottom:1px solid #e9ecef; "></div><div style="position:absolute; left:20px; top:488px; font-size:13px; color:#212529; ">단기 육아휴직</div><div style="position:absolute; left:0; top:516px; width:344px; height:40px; border-bottom:1px solid #e9ecef; "></div><div style="position:absolute; left:20px; top:528px; font-size:13px; color:#212529; ">가족돌봄휴직</div><div style="position:absolute; left:0; top:556px; width:344px; height:40px; border-bottom:1px solid #e9ecef; "></div><div style="position:absolute; left:20px; top:568px; font-size:13px; color:#212529; ">초등자녀 돌봄휴직</div>
+ </div>
+ <div class="device" style="position:absolute; left:400px; top:0;">
+  <div class="hdr"></div><div class="hdr-title" style="left:14px;">휴직 신청서 작성</div>
+  <div style="position:absolute; left:0; top:48px; width:344px; height:600px; background:#868e96;"></div>
+  <div style="position:absolute; left:0; top:200px; width:344px; height:460px; background:#fff; border-radius:16px 16px 0 0;"></div>
+  <div style="position:absolute; left:152px; top:210px; width:40px; height:4px; background:#ced4da; border-radius:2px;"></div>
+  <div style="position:absolute; left:20px; top:236px; font-size:15px; font-weight:700; color:#212529;">신청기간 · 시작일</div>
+  <div style="position:absolute; right:18px; top:232px; font-size:18px; color:#495057;">×</div>
+  <div style="position:absolute; left:20px; top:290px; font-size:16px; color:#495057;">‹</div>
+  <div style="position:absolute; left:110px; top:290px; width:124px; text-align:center; font-size:14px; font-weight:700;">2026년 10월</div>
+  <div style="position:absolute; right:20px; top:290px; font-size:16px; color:#495057;">›</div>
+  <div style="position:absolute; left:18px; top:330px; width:44px; text-align:center; font-size:11px; color:#868e96;">일</div><div style="position:absolute; left:62px; top:330px; width:44px; text-align:center; font-size:11px; color:#868e96;">월</div><div style="position:absolute; left:106px; top:330px; width:44px; text-align:center; font-size:11px; color:#868e96;">화</div><div style="position:absolute; left:150px; top:330px; width:44px; text-align:center; font-size:11px; color:#868e96;">수</div><div style="position:absolute; left:194px; top:330px; width:44px; text-align:center; font-size:11px; color:#868e96;">목</div><div style="position:absolute; left:238px; top:330px; width:44px; text-align:center; font-size:11px; color:#868e96;">금</div><div style="position:absolute; left:282px; top:330px; width:44px; text-align:center; font-size:11px; color:#868e96;">토</div><div style="position:absolute; left:156px; top:354px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#ced4da;">1</div><div style="position:absolute; left:200px; top:354px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#ced4da;">2</div><div style="position:absolute; left:244px; top:354px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#ced4da;">3</div><div style="position:absolute; left:288px; top:354px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#ced4da;">4</div><div style="position:absolute; left:24px; top:390px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">5</div><div style="position:absolute; left:68px; top:390px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">6</div><div style="position:absolute; left:112px; top:390px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">7</div><div style="position:absolute; left:156px; top:390px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">8</div><div style="position:absolute; left:200px; top:390px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">9</div><div style="position:absolute; left:244px; top:390px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">10</div><div style="position:absolute; left:288px; top:390px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">11</div><div style="position:absolute; left:24px; top:426px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">12</div><div style="position:absolute; left:68px; top:426px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">13</div><div style="position:absolute; left:112px; top:426px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">14</div><div style="position:absolute; left:156px; top:426px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">15</div><div style="position:absolute; left:200px; top:426px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">16</div><div style="position:absolute; left:244px; top:426px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">17</div><div style="position:absolute; left:288px; top:426px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">18</div><div style="position:absolute; left:24px; top:462px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">19</div><div style="position:absolute; left:68px; top:462px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">20</div><div style="position:absolute; left:112px; top:462px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">21</div><div style="position:absolute; left:156px; top:462px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">22</div><div style="position:absolute; left:200px; top:462px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">23</div><div style="position:absolute; left:244px; top:462px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">24</div><div style="position:absolute; left:288px; top:462px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">25</div><div style="position:absolute; left:24px; top:498px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; background:#343a40; color:#fff; border-radius:16px;">26</div><div style="position:absolute; left:68px; top:498px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">27</div><div style="position:absolute; left:112px; top:498px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">28</div><div style="position:absolute; left:156px; top:498px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">29</div><div style="position:absolute; left:200px; top:498px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">30</div><div style="position:absolute; left:244px; top:498px; width:32px; height:32px; line-height:32px; text-align:center; font-size:12px; color:#212529;">31</div>
+  <div class="btn-ghost" style="position:absolute; left:16px; top:586px; width:312px; height:40px; line-height:40px;">날짜 지우기 (목록 필터에서만)</div>
+ </div>
+ <div class="indicator" style="top:360px; left:-4px;">1</div><div class="indicator" style="top:300px; left:396px;">2</div><div class="indicator" style="top:590px; left:396px;">3</div><div class="indicator" style="top:306px; left:330px;">4</div>
+</div></div>
+    
+  </div>
+  <div class="desc-wrap">
+    <h3 style="font-weight:700; color:#212529;">Description</h3>
+    <table class="desc-table"><thead><tr><th class="num">No.</th><th>컴포넌트</th><th>설명</th><th>인터랙션</th></tr></thead><tbody><tr><td class="num">1</td><td><b>옵션 목록</b><div class="dtype">BottomSheet (listbox)</div></td><td>원래 Select의 옵션 그대로. 필드 라벨을 제목으로 사용</td><td>탭 시 선택 후 자동 닫힘, 선택 항목 ✓</td></tr><tr><td class="num">2</td><td><b>달력</b><div class="dtype">BottomSheet (calendar)</div></td><td>월 이동, 일요일·오늘 표시</td><td>날짜 탭 시 선택 후 닫힘. 최소일 이전 비활성</td></tr><tr><td class="num">3</td><td><b>날짜 지우기</b><div class="dtype">Button (outline)</div></td><td>목록 필터 날짜만</td><td>값 비우고 닫힘</td></tr><tr><td class="num">4</td><td><b>닫기</b><div class="dtype">× / 배경 탭 / ESC</div></td><td>—</td><td>시트 닫기</td></tr></tbody></table>
+    
+  </div>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+function showScreen(screenId, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const target = document.getElementById(screenId);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function initSidebars() {
+  const template = document.getElementById('sidebar-template');
+  if (!template) return;
+  document.querySelectorAll('.admin-sidebar').forEach(placeholder => {
+    const clone = template.content.cloneNode(true);
+    const activeScreen = placeholder.getAttribute('data-active');
+    clone.querySelectorAll('.sidebar-item').forEach(item => {
+      if (item.getAttribute('data-screen') === activeScreen) {
+        item.classList.add('active');
+      }
+      item.addEventListener('click', () => {
+        const targetScreen = item.getAttribute('data-screen');
+        if (targetScreen) {
+          document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.textContent.includes(targetScreen.replace('scr-', ''))) {
+              showScreen(targetScreen, btn);
+            }
+          });
+        }
+      });
+    });
+    placeholder.appendChild(clone);
+  });
+}
+
+document.getElementById('cover-page').addEventListener('click', (e) => {
+  if (!e.target.closest('button') && !e.target.closest('.download-btns')) {
+    showScreen('overview', document.querySelectorAll('.tab-btn')[1]);
+  }
+});
+
+// Scroll spy: update active tab based on scroll position
+function updateActiveTab() {
+  const sections = document.querySelectorAll('.screen-section');
+  const tabs = document.querySelectorAll('.tab-btn');
+  let current = 0;
+  sections.forEach((section, idx) => {
+    const rect = section.getBoundingClientRect();
+    if (rect.top <= 80) current = idx;
+  });
+  tabs.forEach(t => t.classList.remove('active'));
+  if (tabs[current]) tabs[current].classList.add('active');
+}
+
+// --- PDF download (window.print). Editable PPTX is added by sb-creator-pptx. ---
+function downloadPDF(e) {
+  e.stopPropagation();
+  window.print();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initSidebars();
+  document.getElementById('cover-page').style.cursor = 'pointer';
+  window.addEventListener('scroll', updateActiveTab, { passive: true });
+});
+</script>
+
+<!-- BEGIN sb-creator-pptx script (auto-injected) -->
+<script>
+/* ============================================================
+ * sb-creator-pptx — HTML to Editable PPTX Export
+ *   - 각 SECTION_SELECTOR 요소를 슬라이드로 변환
+ *   - DOM 요소 → PptxGenJS addShape/addText (편집 가능 네이티브 형태)
+ *   - body 폭 1440px 강제 측정으로 사용자 창 크기 무관 일정한 스케일
+ *   - 단일행 자동 감지 → wrap:false (짧은 한글 잘림 방지)
+ *   - 폰트 폭 보정 (단일행 +15%, 다행 +8%)
+ *   - 세로로 긴 화면은 SLIDE_HEIGHT 단위로 자동 분할 (멀티 슬라이드)
+ *
+ * 템플릿 변수 (inject.py가 치환):
+ *   .screen-section   기본 .screen-section
+ *   13.33         기본 13.33 (인치, Widescreen)
+ *   7.5        기본 7.5
+ *   화면설계서_휴직신청_editable         기본 PPTX_Export
+ * ============================================================ */
+
+async function downloadPPTX(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const btn = document.getElementById('btn-pptx');
+  const progress = document.getElementById('download-progress');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:sbpptx-spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 생성 중...';
+  }
+  if (progress) progress.style.display = '';
+
+  if (!document.getElementById('sbpptx-spin-style')) {
+    const s = document.createElement('style');
+    s.id = 'sbpptx-spin-style';
+    s.textContent = '@keyframes sbpptx-spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+
+  const hideEls = document.querySelectorAll('.no-print, .sbpptx-hide');
+  const bodyOrigCss = document.body.style.cssText;
+  const htmlOrigCss = document.documentElement.style.cssText;
+
+  try {
+    await loadScript([
+      'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js',
+      'https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js',
+      'https://unpkg.com/pptxgenjs@3.12.0/dist/pptxgen.bundle.js',
+    ], () => typeof PptxGenJS !== 'undefined');
+
+    const pptx = new PptxGenJS();
+    const SLIDE_W = 13.33;
+    const SLIDE_H = 7.5;
+    pptx.defineLayout({ name: 'WIDE', width: SLIDE_W, height: SLIDE_H });
+    pptx.layout = 'WIDE';
+
+    // 측정 일관성을 위해 본문 폭을 1440px로 고정
+    hideEls.forEach(el => el.dataset._origDisplay = el.style.display);
+    hideEls.forEach(el => el.style.display = 'none');
+    document.documentElement.style.width = '1440px';
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.width = '1440px';
+    document.body.style.minWidth = '1440px';
+    document.body.style.maxWidth = '1440px';
+    void document.body.offsetHeight;
+    window.scrollTo(0, 0);
+    await new Promise(r => setTimeout(r, 400));
+
+    const sections = document.querySelectorAll('.screen-section');
+    if (sections.length === 0) {
+      throw new Error('변환할 섹션이 없습니다. 셀렉터: .screen-section');
+    }
+
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      const isCover = (i === 0);
+
+      const sRect = section.getBoundingClientRect();
+      const sx = sRect.left + window.scrollX;
+      const sy = sRect.top + window.scrollY;
+      const sw = sRect.width;
+      const sh = sRect.height;
+      if (sw < 10 || sh < 10) continue;
+
+      // 가로 폭 기준 단일 스케일 (인치/픽셀)
+      const scale = SLIDE_W / sw;
+      const sectionHInches = sh * scale;
+      const numPages = Math.max(1, Math.ceil(sectionHInches / SLIDE_H));
+      const verticalCenterOffset = (numPages === 1) ? Math.max(0, (SLIDE_H - sectionHInches) / 2) : 0;
+
+      for (let p = 0; p < numPages; p++) {
+        if (progress) {
+          progress.textContent = `${i + 1}/${sections.length}` + (numPages > 1 ? ` (페이지 ${p + 1}/${numPages})` : '');
+        }
+        const slide = pptx.addSlide();
+        slide.background = { color: isCover ? '212529' : 'F8F9FA' };
+
+        const pageOffsetY = verticalCenterOffset - p * SLIDE_H;
+        const elements = section.querySelectorAll('*');
+        // 1차 패스: 인디케이터·.on-top 외 모든 요소
+        for (const el of elements) {
+          if (el.classList && (el.classList.contains('indicator') || el.classList.contains('on-top'))) continue;
+          sbpptxRenderElement(pptx, slide, el, sx, sy, scale, 0, pageOffsetY, SLIDE_W, SLIDE_H);
+        }
+        // 2차 패스: 인디케이터·.on-top을 맨 위 레이어로
+        for (const el of elements) {
+          if (!el.classList || (!el.classList.contains('indicator') && !el.classList.contains('on-top'))) continue;
+          sbpptxRenderElement(pptx, slide, el, sx, sy, scale, 0, pageOffsetY, SLIDE_W, SLIDE_H);
+        }
+        await new Promise(r => requestAnimationFrame(r));
+      }
+    }
+
+    // 파일명에 타임스탬프 추가: YYYYMMDD_HHMM
+    const _ts = (() => {
+      const n = new Date();
+      const z = v => String(v).padStart(2, '0');
+      return `${n.getFullYear()}${z(n.getMonth()+1)}${z(n.getDate())}_${z(n.getHours())}${z(n.getMinutes())}`;
+    })();
+    await pptx.writeFile({ fileName: `화면설계서_휴직신청_editable_${_ts}.pptx` });
+  } catch (err) {
+    console.error('PPTX generation failed:', err);
+    alert('PPTX 생성 실패: ' + err.message);
+  } finally {
+    document.body.style.cssText = bodyOrigCss;
+    document.documentElement.style.cssText = htmlOrigCss;
+    hideEls.forEach(el => { el.style.display = el.dataset._origDisplay || ''; delete el.dataset._origDisplay; });
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> PPTX 다운로드';
+    }
+    if (progress) progress.style.display = 'none';
+  }
+}
+
+function sbpptxRenderElement(pptx, slide, el, baseX, baseY, scale, offsetX, offsetY, slideW, slideH) {
+  const tag = el.tagName;
+  if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'LINK' || tag === 'META' || tag === 'TITLE' || tag === 'HEAD' || tag === 'TEMPLATE' || tag === 'BR' || tag === 'HR') return;
+  if (tag === 'svg' || tag === 'SVG' || tag === 'PATH' || tag === 'CIRCLE' || tag === 'LINE' || tag === 'RECT' || tag === 'POLYLINE' || tag === 'POLYGON') return;
+  if (el.classList && (el.classList.contains('no-print') || el.classList.contains('sbpptx-hide'))) return;
+  if (el.closest && (el.closest('.no-print') || el.closest('.sbpptx-hide'))) return;
+
+  const rect = el.getBoundingClientRect();
+  if (rect.width < 0.5 || rect.height < 0.5) return;
+
+  const style = window.getComputedStyle(el);
+  if (style.display === 'none' || style.visibility === 'hidden') return;
+  if (parseFloat(style.opacity) === 0) return;
+
+  const rx = rect.left + window.scrollX;
+  const ry = rect.top + window.scrollY;
+  const x = offsetX + (rx - baseX) * scale;
+  const y = offsetY + (ry - baseY) * scale;
+  const w = rect.width * scale;
+  const h = rect.height * scale;
+
+  if (x >= slideW + 0.05 || y >= slideH + 0.05) return;
+  if (x + w <= -0.05 || y + h <= -0.05) return;
+  if (w < 0.02 || h < 0.02) return;
+
+  // (1) 배경/테두리 도형
+  const bg = style.backgroundColor;
+  let bgHex = null;
+  if (!sbpptxIsTransparent(bg)) {
+    bgHex = sbpptxRgbToHex(bg);
+    const alpha = sbpptxGetAlpha(bg);
+    if (alpha !== null && alpha < 1) {
+      const parentBg = sbpptxFindOpaqueParentBg(el);
+      bgHex = sbpptxBlendHex(parentBg, bgHex, alpha);
+    }
+  }
+  // backgroundColor 투명 + background-image 그래디언트 → 첫 색상으로 폴백
+  if (!bgHex && style.backgroundImage && style.backgroundImage.includes('gradient')) {
+    const m = style.backgroundImage.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{6,8}|#[0-9a-fA-F]{3}\b/);
+    if (m) {
+      const c = m[0];
+      bgHex = c.startsWith('#')
+        ? (c.length === 4 ? c.slice(1).split('').map(h => h+h).join('') : c.slice(1)).toUpperCase().slice(0, 6)
+        : sbpptxRgbToHex(c);
+    }
+  }
+  const bw = parseFloat(style.borderTopWidth) || 0;
+  const bColor = bw > 0 ? sbpptxRgbToHex(style.borderTopColor) : null;
+  const radiusPx = parseFloat(style.borderTopLeftRadius) || 0;
+
+  if (bgHex || (bw > 0 && bColor)) {
+    const sx = Math.max(0, x);
+    const sy = Math.max(0, y);
+    const sw = Math.min(x + w, slideW) - sx;
+    const sh = Math.min(y + h, slideH) - sy;
+    if (sw > 0.02 && sh > 0.02) {
+      const opts = {
+        x: sx, y: sy, w: sw, h: sh,
+        fill: bgHex ? { color: bgHex } : { type: 'none' },
+        line: (bw > 0 && bColor) ? { color: bColor, width: Math.max(0.25, bw * 0.6) } : { type: 'none' },
+      };
+      // 도형 종류 선택 (단순화):
+      //   - 정사각형(1:1) + border-radius ≥ 절반 → OVAL (완전한 원, 예: 넘버링 인디케이터)
+      //   - 그 외 모든 도형 → RECTANGLE (직각, HTML 둥근 모서리는 무시)
+      const minDim = Math.min(rect.width, rect.height);
+      const aspectRatio = Math.max(rect.width, rect.height) / Math.max(0.1, minDim);
+      const fullyRounded = radiusPx >= minDim / 2 - 1;
+      const isCircle = fullyRounded && aspectRatio <= 1.2;
+      const shapeType = isCircle ? pptx.shapes.OVAL : pptx.shapes.RECTANGLE;
+      try { slide.addShape(shapeType, opts); } catch (err) { /* ignore */ }
+    }
+  }
+
+  // (1-b) ::after 가상 요소 렌더 (예: 토글 스위치 핸들 등 CSS pseudo로 만들어진 동그라미)
+  try {
+    const after = window.getComputedStyle(el, '::after');
+    if (after) {
+      const contentVal = after.content;
+      if (contentVal && contentVal !== 'none' && contentVal !== 'normal') {
+        const aW = parseFloat(after.width) || 0;
+        const aH = parseFloat(after.height) || 0;
+        const aBg = after.backgroundColor;
+        if (aW > 0 && aH > 0 && !sbpptxIsTransparent(aBg)) {
+          const aLeft = parseFloat(after.left) || 0;
+          const aTop = parseFloat(after.top) || 0;
+          const ax = x + aLeft * scale;
+          const ay = y + aTop * scale;
+          const aw = aW * scale;
+          const ah = aH * scale;
+          const aR = parseFloat(after.borderTopLeftRadius) || 0;
+          const aFullyRounded = aR >= Math.min(aW, aH) / 2 - 1;
+          const aIsCircle = aFullyRounded && Math.abs(aW - aH) < 2;
+          const aShape = aIsCircle ? pptx.shapes.OVAL : pptx.shapes.RECTANGLE;
+          slide.addShape(aShape, {
+            x: ax, y: ay, w: aw, h: ah,
+            fill: { color: sbpptxRgbToHex(aBg) },
+            line: { type: 'none' },
+          });
+        }
+      }
+    }
+  } catch (err) { /* ignore */ }
+
+  // (2-a) 폼 요소(input/select/textarea) — 직접 표시 텍스트 추출하여 렌더
+  if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+    let formText = '';
+    let isPlaceholder = false;
+    try {
+      if (el.tagName === 'SELECT') {
+        const opt = el.querySelector('option[selected]') || el.querySelector('option');
+        if (opt) formText = String(opt.textContent || '').trim();
+      } else {
+        formText = String(el.value || '').trim();
+        if (!formText) {
+          const ph = el.getAttribute('placeholder');
+          if (ph) {
+            formText = String(ph).trim();
+            isPlaceholder = !!formText;
+          }
+        }
+        if (!formText) {
+          const inputType = el.type || el.getAttribute('type') || '';
+          if (inputType === 'date') {
+            formText = 'YYYY.MM.DD';
+            isPlaceholder = true;
+          } else if (inputType === 'time') {
+            formText = 'HH:MM';
+            isPlaceholder = true;
+          } else if (inputType === 'datetime-local') {
+            formText = 'YYYY.MM.DD HH:MM';
+            isPlaceholder = true;
+          }
+        }
+      }
+    } catch (e) { /* form access failed */ }
+
+    if (formText) {
+      // 폼 요소는 본문 텍스트 → 7pt 고정
+      const fontPt = 7;
+      const color = isPlaceholder ? '6C757D' : (sbpptxRgbToHex(style.color) || '212529');
+      const fontFace = sbpptxFontName(style.fontFamily);
+      const padL = (parseFloat(style.paddingLeft) || 0) * scale;
+      const padR = (parseFloat(style.paddingRight) || 0) * scale;
+      const tx = Math.max(0, x + padL);
+      const ty = Math.max(0, y);
+      const tw = Math.max(0.3, Math.min(slideW - tx, w - padL - padR + w * 0.2));
+      const th = Math.max(0.15, Math.min(slideH - ty, h));
+      const opts = {
+        x: tx, y: ty, w: tw, h: th,
+        fontFace: fontFace,
+        fontSize: fontPt,
+        color: color,
+        align: 'left',
+        valign: 'middle',
+        margin: 0,
+        wrap: false,
+        fit: 'shrink',
+        isTextBox: true,
+      };
+      try {
+        slide.addText(formText, opts);
+      } catch (err) {
+        console.warn('form addText failed:', err, formText, opts);
+      }
+    }
+    return;
+  }
+
+  // (2) 텍스트 리프 요소만 텍스트박스로 추가
+  if (sbpptxIsTextLeaf(el)) {
+    const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    if (text && text.length > 0 && text.length < 2500) {
+      const fontPx = parseFloat(style.fontSize) || 13;
+      // 폰트 규칙:
+      //   - 본문 글씨 (HTML font-size < 20px) → 7pt 고정 (전체 영역 통일)
+      //   - 헤딩·큰 숫자 (HTML font-size ≥ 20px) → 8~14pt 클램프 (h1, stat-value 등 강조)
+      const rawPt = fontPx * scale * 72;
+      const isLargeText = fontPx >= 20;
+      const fontPt = isLargeText
+        ? Math.max(8, Math.min(14, rawPt))
+        : 7;
+      const color = sbpptxRgbToHex(style.color) || '212529';
+      const fw = parseInt(style.fontWeight) || 400;
+      const bold = fw >= 600;
+      const italic = style.fontStyle === 'italic';
+      const fontFace = sbpptxFontName(style.fontFamily);
+      let align = 'left';
+      if (style.textAlign === 'center') align = 'center';
+      else if (style.textAlign === 'right') align = 'right';
+      // flex의 justify-content:center도 가로 중앙 정렬로 처리
+      if (style.display === 'flex' && style.justifyContent === 'center') align = 'center';
+      // .desc-table/.desc-wrap/.always-top 영역은 예외 없이 상단 정렬
+      const forceTop = el.closest && (el.closest('.desc-table') || el.closest('.desc-wrap') || el.closest('.always-top'));
+      const valign = forceTop ? 'top' :
+                     (style.display === 'flex' && style.alignItems === 'center') ? 'middle' :
+                     (style.verticalAlign === 'middle') ? 'middle' : 'top';
+
+      // 단일행 텍스트 자동 감지:
+      //   - white-space:nowrap/pre, 또는
+      //   - 버튼·배지·사이드바·탭 항목, 또는
+      //   - 요소 높이 < line-height × 1.8
+      let lineHeightPx = parseFloat(style.lineHeight);
+      if (!isFinite(lineHeightPx) || style.lineHeight === 'normal') {
+        lineHeightPx = fontPx * 1.2;
+      }
+      const nowrapCss = style.whiteSpace === 'nowrap' || style.whiteSpace === 'pre';
+      const tagName = el.tagName;
+      const cls = el.classList || { contains: () => false };
+      const isButtonLike = tagName === 'BUTTON' || tagName === 'A'
+                          || cls.contains('btn') || cls.contains('badge')
+                          || cls.contains('sidebar-item') || cls.contains('tab-btn')
+                          || cls.contains('chip') || cls.contains('pill') || cls.contains('tag');
+      const isSingleLine = nowrapCss || isButtonLike || (rect.height < lineHeightPx * 1.8);
+
+      // padding inset
+      const padT = (parseFloat(style.paddingTop) || 0) * scale;
+      const padL = (parseFloat(style.paddingLeft) || 0) * scale;
+      const padR = (parseFloat(style.paddingRight) || 0) * scale;
+      const padB = (parseFloat(style.paddingBottom) || 0) * scale;
+
+      // 텍스트박스 폭 버퍼: 단일행 +15% / Description 영역 0% / 기타 다행 +5%
+      // Description 영역은 우측 슬라이드 가장자리 안전 여백 확대 (텍스트가 모서리에 닿지 않도록)
+      const inDescAreaText = el.closest && (el.closest('.desc-wrap') || el.closest('.desc-table') || el.closest('.always-top'));
+      const widthBufferRatio = isSingleLine ? 0.15 : (inDescAreaText ? 0 : 0.05);
+      const widthBuffer = w * widthBufferRatio;
+      const rightSafe = inDescAreaText ? 0.15 : 0.05;
+
+      const tx = Math.max(0, x + padL);
+      const ty = Math.max(0, y + padT);
+      const naturalRight = x + w - padR + widthBuffer;
+      const trEdge = Math.min(slideW - rightSafe, naturalRight);
+      const tbEdge = Math.min(slideH, y + h - padB);
+      const tw = Math.max(0.1, trEdge - tx);
+      const th = Math.max(0.1, tbEdge - ty);
+
+      try {
+        slide.addText(text, {
+          x: tx, y: ty, w: tw, h: th,
+          fontFace: fontFace,
+          fontSize: fontPt,
+          color: color,
+          bold: bold,
+          italic: italic,
+          align: align,
+          valign: valign,
+          margin: 0,
+          wrap: !isSingleLine,
+          // autofit 은 반드시 '하나만' 지정할 것.
+          // shrinkText(→<a:normAutofit/>) 와 autoFit(→<a:spAutoFit/>) 를 동시에 주면
+          // OOXML 스키마(EG_TextAutofit, maxOccurs=1) 위반이라 PowerPoint 가
+          // "파일의 콘텐츠에 문제가 있습니다 / 복구" 대화상자를 띄운다.
+          // 도형 크기는 DOM 좌표로 고정해야 하므로 텍스트를 줄이는 shrink 를 쓴다.
+          fit: 'shrink',
+          isTextBox: true,
+        });
+      } catch (err) { /* ignore */ }
+    }
+  }
+}
+
+function sbpptxIsTextLeaf(el) {
+  if (!el.textContent || !el.textContent.trim()) return false;
+  if (el.children.length === 0) return true;
+  for (const child of el.children) {
+    const t = child.tagName;
+    if (t === 'svg' || t === 'BR' || t === 'IMG' || t === 'INPUT' || t === 'HR') continue;
+    if (child.textContent && child.textContent.trim()) return false;
+  }
+  return true;
+}
+
+function sbpptxRgbToHex(s) {
+  if (!s) return null;
+  if (s === 'transparent') return null;
+  const m = s.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/);
+  if (!m) return null;
+  const a = s.match(/rgba?\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\s*\)/);
+  if (a && parseFloat(a[1]) === 0) return null;
+  const r = Math.round(parseFloat(m[1]));
+  const g = Math.round(parseFloat(m[2]));
+  const b = Math.round(parseFloat(m[3]));
+  return ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase();
+}
+
+function sbpptxIsTransparent(c) {
+  if (!c) return true;
+  if (c === 'transparent') return true;
+  if (c === 'rgba(0, 0, 0, 0)') return true;
+  const a = c.match(/rgba?\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\s*\)/);
+  if (a && parseFloat(a[1]) === 0) return true;
+  return false;
+}
+
+// rgba 알파 값 추출
+function sbpptxGetAlpha(c) {
+  if (!c) return null;
+  const a = c.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\s*\)/);
+  if (a) return parseFloat(a[1]);
+  if (c.startsWith('rgb(')) return 1;
+  return null;
+}
+
+// 상위 요소를 거슬러 올라가며 불투명한 background-color 검색
+function sbpptxFindOpaqueParentBg(el) {
+  let p = el.parentElement;
+  while (p) {
+    const ps = window.getComputedStyle(p);
+    const pbg = ps.backgroundColor;
+    if (!sbpptxIsTransparent(pbg)) {
+      const alpha = sbpptxGetAlpha(pbg);
+      if (alpha === null || alpha >= 1) {
+        return sbpptxRgbToHex(pbg);
+      }
+    }
+    p = p.parentElement;
+  }
+  return 'FFFFFF';
+}
+
+// 알파 블렌딩 (bg + alpha*fg)
+function sbpptxBlendHex(bgHex, fgHex, alpha) {
+  if (!bgHex || !fgHex) return fgHex || bgHex;
+  const br = parseInt(bgHex.slice(0, 2), 16);
+  const bgC = parseInt(bgHex.slice(2, 4), 16);
+  const bb = parseInt(bgHex.slice(4, 6), 16);
+  const fr = parseInt(fgHex.slice(0, 2), 16);
+  const fgC = parseInt(fgHex.slice(2, 4), 16);
+  const fb = parseInt(fgHex.slice(4, 6), 16);
+  const r = Math.round(alpha * fr + (1 - alpha) * br);
+  const g = Math.round(alpha * fgC + (1 - alpha) * bgC);
+  const b = Math.round(alpha * fb + (1 - alpha) * bb);
+  return ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase();
+}
+
+function sbpptxFontName(ff) {
+  if (!ff) return '맑은 고딕';
+  const f = ff.toLowerCase();
+  if (f.includes('mono') || f.includes('courier') || f.includes('consolas')) return 'Consolas';
+  return '맑은 고딕';
+}
+
+// 여러 CDN을 순차 시도하는 폴백 로더.
+//   - src: 단일 URL 또는 URL 배열 (앞에서부터 차례로 시도)
+//   - isReady: (선택) 로드 성공 판정 함수. 라이브러리 전역이 실제로 정의됐는지 확인
+//     (사내/교육망 프록시가 200 + 빈/에러 본문을 반환하는 경우까지 방어)
+function loadScript(src, isReady, timeoutMs) {
+  const urls = Array.isArray(src) ? src : [src];
+  const ready = () => (typeof isReady === 'function' ? isReady() : true);
+  const TIMEOUT = timeoutMs || 15000;
+
+  function tryLoad(i) {
+    return new Promise((resolve, reject) => {
+      if (ready()) { resolve(); return; }
+      if (i >= urls.length) {
+        reject(new Error('모든 CDN에서 라이브러리 로드 실패: ' + urls.join(', ')));
+        return;
+      }
+      const url = urls[i];
+      // 이전 시도로 남은 동일 src 태그는 반드시 제거한다.
+      // 이미 실행된 script 는 src 를 다시 대입해도 재요청/onload 가 발생하지 않아,
+      // 재사용하면 Promise 가 영원히 settle 되지 않고 버튼이 '생성 중...' 으로 고착된다.
+      document.querySelectorAll('script[data-sbpptx="1"]').forEach(el => {
+        if (el.getAttribute('src') === url) el.remove();
+      });
+
+      const s = document.createElement('script');
+      s.dataset.sbpptx = '1';
+      let settled = false;
+      const advance = () => {          // 실패/타임아웃 → 다음 CDN
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        tryLoad(i + 1).then(resolve, reject);
+      };
+      // 응답 없이 매달리는 프록시 방어 — 어떤 경우에도 Promise 는 반드시 settle 된다
+      const timer = setTimeout(advance, TIMEOUT);
+      s.onload = () => {
+        if (settled) return;
+        clearTimeout(timer);
+        if (ready()) { settled = true; resolve(); }
+        else advance();                // 200 이지만 라이브러리 미정의 → 다음 CDN
+      };
+      s.onerror = advance;
+      s.src = url;
+      document.head.appendChild(s);
+    });
+  }
+  return tryLoad(0);
+}
+
+</script>
+<!-- END sb-creator-pptx script -->
+</body>
+</html>
